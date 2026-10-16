@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ardhana Clip 9:16 - Vertical Video Clipper for Content Creators</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;600;800&family=Poppins:wght@400;600;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            DEFAULT: '#FA6F05',
+                            hover: '#E85F00',
+                            active: '#FA6F05',
+                            light: '#FF8A33',
+                            dark: '#C75500'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                        roboto: ['Roboto', 'sans-serif'],
+                        poppins: ['Poppins', 'sans-serif'],
+                        montserrat: ['Montserrat', 'sans-serif'],
+                        bebas: ['Bebas Neue', 'cursive'],
+                        anton: ['Anton', 'sans-serif'],
+                        impact: ['Impact', 'Charcoal', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #FA6F05;
+        }
+        
+        /* Custom Accent Slider Styling */
+        input[type=range] {
+            accent-color: #FA6F05;
+        }
+
+        /* Video canvas overlay styling */
+        .preview-container {
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        }
+
+        /* Safe zone grid overlay */
+        .safe-zone-overlay {
+            pointer-events: none;
+            position: absolute;
+            inset: 0;
+            border: 2px dashed rgba(250, 111, 5, 0.6);
+            margin: 10% 8%;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            box-sizing: border-box;
+            background: rgba(250, 111, 5, 0.03);
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-brand selection:text-white">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-30 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-brand text-white p-2 rounded-xl flex items-center justify-center font-bold text-xl shadow-lg shadow-brand/20">
+                    <i class="fa-solid fa-crop-simple"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                        Ardhana Clip <span class="bg-brand/20 text-brand text-xs px-2 py-0.5 rounded-full border border-brand/30">9:16</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Content Creator Vertical Video Clipper</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3 text-xs text-slate-400">
+                <span class="hidden sm:inline-flex items-center gap-1.5 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700/50">
+                    <i class="fa-solid fa-shield-halved text-brand"></i> Client-Side Processing
+                </span>
+                <span class="hidden md:inline-flex items-center gap-1.5 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700/50">
+                    <i class="fa-solid fa-bolt text-brand"></i> Fast Export
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Application Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- LEFT/TOP: PREVIEW AREA (Mobile: Top, Desktop: Right - responsive order handled via CSS) -->
+        <div class="lg:col-span-6 xl:col-span-5 flex flex-col gap-4 lg:order-2">
+            
+            <!-- Video Canvas Card -->
+            <div class="bg-slate-900 rounded-2xl border border-slate-800 p-4 flex flex-col items-center justify-center relative shadow-xl min-h-[450px] lg:min-h-[600px]">
+                
+                <!-- Toast Message Popup -->
+                <div id="toastMessage" class="hidden absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-800 border border-brand text-white text-xs px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 transition-all">
+                    <i id="toastIcon" class="fa-solid fa-info-circle text-brand"></i>
+                    <span id="toastText">Pesan status...</span>
+                </div>
+
+                <!-- Aspect Ratio Container (9:16 Vertical) -->
+                <div class="relative w-full max-w-[320px] aspect-[9/16] bg-slate-950 rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center preview-container group">
+                    
+                    <!-- Canvas Canvas Rendering Target -->
+                    <canvas id="previewCanvas" class="w-full h-full object-contain cursor-pointer" width="1080" height="1920"></canvas>
+
+                    <!-- Safe Zone Overlay Lines -->
+                    <div id="safeZoneOverlay" class="safe-zone-overlay hidden">
+                        <span class="text-[10px] uppercase tracking-wider text-brand font-semibold bg-slate-950/80 px-2 py-0.5 rounded border border-brand/30">TikTok / Reels Safe Zone</span>
+                        <div class="w-full flex justify-between text-[9px] text-slate-400 opacity-60">
+                            <span>👈 Profile</span>
+                            <span>Icons 👉</span>
+                        </div>
+                        <span class="text-[9px] text-slate-400 opacity-60">Caption & Audio Info Safe Line</span>
+                    </div>
+
+                    <!-- Placeholder / Empty State -->
+                    <div id="placeholderState" class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-950/90 z-20">
+                        <div class="w-16 h-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-brand mb-4 shadow-inner">
+                            <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
+                        </div>
+                        <h3 class="text-sm font-semibold text-slate-200 mb-1">Unggah Video Anda</h3>
+                        <p class="text-xs text-slate-400 mb-4 max-w-[200px]">Pilih file video MP4, WebM, atau MOV untuk mulai cropping 9:16</p>
+                        <button onclick="document.getElementById('videoFileInput').click()" class="bg-brand hover:bg-brand-hover active:bg-brand-active text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-lg shadow-brand/20">
+                            <i class="fa-solid fa-folder-open"></i> Pilih Video
+                        </button>
+                    </div>
+
+                    <!-- Video Processing Indicator -->
+                    <div id="exportOverlay" class="hidden absolute inset-0 bg-slate-950/90 z-40 flex flex-col items-center justify-center p-6 text-center backdrop-blur-sm">
+                        <div class="w-14 h-14 rounded-full border-4 border-slate-800 border-t-brand animate-spin mb-4"></div>
+                        <h4 id="exportStatusTitle" class="text-sm font-bold text-white mb-1">Sedang Merekam & Memotong...</h4>
+                        <p id="exportStatusDesc" class="text-xs text-slate-400 mb-3">Harap tunggu, proses dilakukan secara real-time</p>
+                        <div class="w-full bg-slate-800 rounded-full h-2 max-w-[200px] overflow-hidden mb-2">
+                            <div id="exportProgressBar" class="bg-brand h-full w-0 transition-all duration-200"></div>
+                        </div>
+                        <span id="exportPercentText" class="text-xs font-bold text-brand">0%</span>
+                    </div>
+
+                </div>
+
+                <!-- Video Controls Toolbar Below Canvas -->
+                <div class="w-full max-w-[320px] mt-4 flex flex-col gap-2">
+                    <!-- Timeline Progress Slider -->
+                    <div class="flex items-center gap-2 text-xs text-slate-400 font-mono">
+                        <span id="currentTimeDisplay">00:00</span>
+                        <input type="range" id="timelineSlider" min="0" max="100" value="0" step="0.1" disabled class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                        <span id="durationDisplay">00:00</span>
+                    </div>
+
+                    <!-- Playback Action Buttons -->
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <button id="playPauseBtn" disabled class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white transition text-xs flex items-center justify-center w-9 h-9">
+                                <i class="fa-solid fa-play"></i>
+                            </button>
+                            <button id="previewClipBtn" disabled class="bg-brand/10 hover:bg-brand/20 text-brand border border-brand/30 hover:border-brand px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-circle-play"></i> Preview Clip
+                            </button>
+                        </div>
+
+                        <!-- Safe Zone Toggle Button -->
+                        <button id="toggleSafeZoneBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-xl text-xs transition flex items-center gap-1.5 border border-slate-700/50">
+                            <i class="fa-solid fa-border-none text-brand"></i> Safe Zone
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Export Primary Action Card -->
+            <div class="bg-slate-900 rounded-2xl border border-slate-800 p-4 shadow-xl flex flex-col gap-3">
+                <button id="exportVideoBtn" disabled class="w-full bg-brand hover:bg-brand-hover active:bg-brand-active disabled:bg-slate-800 disabled:text-slate-600 text-white font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 text-sm shadow-lg shadow-brand/20">
+                    <i class="fa-solid fa-bolt"></i> Pangkas & Unduh (9:16 WebM)
+                </button>
+                <p class="text-[11px] text-slate-400 text-center flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-circle-info text-slate-500"></i> Video & audio akan diproses lokal tanpa pengurangan kualitas awal.
+                </p>
+            </div>
+
+        </div>
+
+        <!-- RIGHT/BOTTOM: EDITING CONTROLS (Mobile: Bottom, Desktop: Left) -->
+        <div class="lg:col-span-6 xl:col-span-7 flex flex-col gap-5 lg:order-1">
+            
+            <!-- Hidden Audio & Video Elements -->
+            <video id="sourceVideo" class="hidden" playsinline crossorigin="anonymous"></video>
+            <input type="file" id="videoFileInput" accept="video/mp4,video/webm,video/quicktime,video/mkv" class="hidden">
+
+            <!-- Panel Section: Video File Upload & Metadata -->
+            <div class="bg-slate-900 rounded-2xl border border-slate-800 p-4 sm:p-5 shadow-xl">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-file-video text-brand"></i> 1. Video Input
+                    </h2>
+                    <button onclick="document.getElementById('videoFileInput').click()" class="text-xs bg-slate-800 hover:bg-slate-700 text-brand px-3 py-1.5 rounded-lg transition border border-slate-700 flex items-center gap-1.5">
+                        <i class="fa-solid fa-upload"></i> Pilih File
+                    </button>
+                </div>
+
+                <!-- Video Metadata Info Bar -->
+                <div id="videoMetaCard" class="hidden bg-slate-950/60 rounded-xl p-3 border border-slate-800/80 text-xs grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div>
+                        <span class="text-slate-500 block text-[10px] uppercase">Nama File</span>
+                        <span id="metaFileName" class="text-slate-200 font-medium truncate block">-</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block text-[10px] uppercase">Durasi Total</span>
+                        <span id="metaDuration" class="text-slate-200 font-medium block">-</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block text-[10px] uppercase">Resolusi Asli</span>
+                        <span id="metaResolution" class="text-slate-200 font-medium block">-</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block text-[10px] uppercase">Ukuran File</span>
+                        <span id="metaFileSize" class="text-slate-200 font-medium block">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel Section: Trimmer & Smart Framing -->
+            <div class="bg-slate-900 rounded-2xl border border-slate-800 p-4 sm:p-5 shadow-xl grid grid-cols-1 md:grid-cols-2 gap-5">
+                
+                <!-- Video Trimmer -->
+                <div class="flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-800 pb-4 md:pb-0 md:pr-4">
+                    <div>
+                        <h2 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-scissors text-brand"></i> 2. Video Trimmer
+                        </h2>
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="text-xs text-slate-400 block mb-1">Mulai (Detik)</label>
+                                <input type="number" id="startTimeInput" min="0" value="0" step="0.1" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand">
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-400 block mb-1">Selesai (Detik)</label>
+                                <input type="number" id="endTimeInput" min="0" value="10" step="0.1" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-950/50 p-2.5 rounded-xl border border-slate-800/80 flex justify-between items-center text-xs">
+                        <span class="text-slate-400">Durasi Clip:</span>
+                        <span id="clipDurationBadge" class="font-bold text-brand">10.0 detik</span>
+                    </div>
+                </div>
+
+                <!-- Crop & Framing -->
+                <div class="flex flex-col justify-between">
+                    <div>
+                        <h2 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-brand"></i> 3. Crop & Smart Framing
+                        </h2>
+                        
+                        <!-- Framing Presets -->
+                        <div class="grid grid-cols-3 gap-2 mb-3">
+                            <button id="presetLeftBtn" class="bg-slate-950 hover:bg-slate-800 text-slate-300 py-1.5 px-2 rounded-xl text-xs border border-slate-800 transition flex items-center justify-center gap-1">
+                                👈 Kiri
+                            </button>
+                            <button id="presetCenterBtn" class="bg-brand/20 text-brand border border-brand/40 py-1.5 px-2 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1">
+                                👤 Tengah
+                            </button>
+                            <button id="presetRightBtn" class="bg-slate-950 hover:bg-slate-800 text-slate-300 py-1.5 px-2 rounded-xl text-xs border border-slate-800 transition flex items-center justify-center gap-1">
+                                Kanan 👉
+                            </button>
+                        </div>
+
+                        <!-- Horizontal Slider -->
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs text-slate-400">
+                                <span>Posisi Horizontal Crop</span>
+                                <span id="cropValDisplay" class="text-brand font-mono">50%</span>
+                            </div>
+                            <input type="range" id="cropSlider" min="0" max="100" value="50" class="w-full h-2 bg-slate-950 rounded-lg appearance-none cursor-pointer">
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-2">Geser slider untuk menentukan area fokus horizontal video landscape.</p>
+                </div>
+
+            </div>
+
+            <!-- Panel Section: Caption Editor -->
+            <div class="bg-slate-900 rounded-2xl border border-slate-800 p-4 sm:p-5 shadow-xl flex flex-col gap-4">
+                <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-closed-captioning text-brand"></i> 4. Caption Editor
+                </h2>
+
+                <!-- Textarea -->
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Teks Caption</label>
+                    <textarea id="captionTextInput" rows="2" placeholder="Masukkan caption menarik di sini..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-brand resize-none">Ini alasan kenapa fitur ini sangat berguna untuk content creator!</textarea>
+                </div>
+
+                <!-- Font Styling Options Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <!-- Font Family -->
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Font Family</label>
+                        <select id="fontFamilySelect" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand">
+                            <option value="Arial">Arial</option>
+                            <option value="Inter">Inter</option>
+                            <option value="Roboto">Roboto</option>
+                            <option value="Poppins">Poppins</option>
+                            <option value="Montserrat">Montserrat</option>
+                            <option value="Bebas Neue">Bebas Neue</option>
+                            <option value="Anton" selected>Anton</option>
+                            <option value="Impact">Impact</option>
+                        </select>
+                    </div>
+
+                    <!-- Font Size -->
+                    <div>
+                        <div class="flex justify-between text-xs text-slate-400 mb-1">
+                            <span>Ukuran Font</span>
+                            <span id="fontSizeDisplay" class="text-brand font-mono">60px</span>
+                        </div>
+                        <input type="range" id="fontSizeSlider" min="24" max="120" value="60" class="w-full h-2 bg-slate-950 rounded-lg appearance-none cursor-pointer mt-2">
+                    </div>
+
+                    <!-- Text Color -->
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Warna Teks</label>
+                        <div class="flex items-center gap-2 bg-slate-950 border border-slate-800 rounded-xl p-1.5">
+                            <input type="color" id="textColorInput" value="#FFFFFF" class="w-7 h-7 rounded-lg cursor-pointer bg-transparent border-0 p-0">
+                            <span id="textColorHex" class="text-xs text-slate-300 font-mono">#FFFFFF</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Text Stroke/Outline & Alignment Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-800/60">
+                    <!-- Stroke Size -->
+                    <div>
+                        <div class="flex justify-between text-xs text-slate-400 mb-1">
+                            <span>Ukuran Outline</span>
+                            <span id="strokeSizeDisplay" class="text-brand font-mono">4px</span>
+                        </div>
+                        <input type="range" id="strokeSizeSlider" min="0" max="15" value="4" class="w-full h-2 bg-slate-950 rounded-lg appearance-none cursor-pointer mt-2">
+                    </div>
+
+                    <!-- Stroke Color -->
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Warna Outline</label>
+                        <div class="flex items-center gap-2 bg-slate-950 border border-slate-800 rounded-xl p-1.5">
+                            <input type="color" id="strokeColorInput" value="#000000" class="w-7 h-7 rounded-lg cursor-pointer bg-transparent border-0 p-0">
+                            <span id="strokeColorHex" class="text-xs text-slate-300 font-mono">#000000</span>
+                        </div>
+                    </div>
+
+                    <!-- Text Align -->
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Rata Teks</label>
+                        <div class="grid grid-cols-3 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                            <button data-align="left" class="align-btn p-1.5 text-xs text-slate-400 hover:text-white rounded-lg transition"><i class="fa-solid fa-align-left"></i></button>
+                            <button data-align="center" class="align-btn active p-1.5 text-xs bg-brand text-white rounded-lg transition"><i class="fa-solid fa-align-center"></i></button>
+                            <button data-align="right" class="align-btn p-1.5 text-xs text-slate-400 hover:text-white rounded-lg transition"><i class="fa-solid fa-align-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Background & Width Options -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-800/60">
+                    <!-- Background Style -->
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Background Caption</label>
+                        <select id="bgTypeSelect" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand">
+                            <option value="none">None (Tanpa Bg)</option>
+                            <option value="solid">Solid Color</option>
+                            <option value="semi" selected>Semi Transparan</option>
+                        </select>
+                    </div>
+
+                    <!-- Background Color -->
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Warna Background</label>
+                        <div class="flex items-center gap-2 bg-slate-950 border border-slate-800 rounded-xl p-1.5">
+                            <input type="color" id="bgColorInput" value="#000000" class="w-7 h-7 rounded-lg cursor-pointer bg-transparent border-0 p-0">
+                            <span id="bgColorHex" class="text-xs text-slate-300 font-mono">#000000</span>
+                        </div>
+                    </div>
+
+                    <!-- Caption Box Width -->
+                    <div>
+                        <div class="flex justify-between text-xs text-slate-400 mb-1">
+                            <span>Lebar Area Caption</span>
+                            <span id="captionWidthDisplay" class="text-brand font-mono">80%</span>
+                        </div>
+                        <input type="range" id="captionWidthSlider" min="40" max="95" value="80" class="w-full h-2 bg-slate-950 rounded-lg appearance-none cursor-pointer mt-2">
+                    </div>
+                </div>
+
+                <!-- Caption Position Controls -->
+                <div class="pt-2 border-t border-slate-800/60 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs text-slate-400">Preset Posisi</label>
+                        <div class="flex gap-1.5">
+                            <button id="posTopBtn" class="bg-slate-950 hover:bg-slate-800 text-slate-300 px-2.5 py-1 rounded-lg text-xs border border-slate-800 transition">Atas</button>
+                            <button id="posCenterBtn" class="bg-slate-950 hover:bg-slate-800 text-slate-300 px-2.5 py-1 rounded-lg text-xs border border-slate-800 transition">Tengah</button>
+                            <button id="posBottomBtn" class="bg-brand/20 text-brand border border-brand/40 px-2.5 py-1 rounded-lg text-xs font-semibold transition">Bawah</button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <div class="flex justify-between text-xs text-slate-400 mb-1">
+                                <span>Posisi X (Horizontal)</span>
+                                <span id="posXDisplay" class="text-brand font-mono">50%</span>
+                            </div>
+                            <input type="range" id="posXSlider" min="0" max="100" value="50" class="w-full h-2 bg-slate-950 rounded-lg appearance-none cursor-pointer">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs text-slate-400 mb-1">
+                                <span>Posisi Y (Vertikal)</span>
+                                <span id="posYDisplay" class="text-brand font-mono">80%</span>
+                            </div>
+                            <input type="range" id="posYSlider" min="0" max="100" value="80" class="w-full h-2 bg-slate-950 rounded-lg appearance-none cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-900/50 py-4 px-4 text-center text-xs text-slate-500 mt-auto">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+            <p>© 2026 Ardhana Clip 9:16. Dibuat khusus untuk Content Creator TikTok, Reels, & Shorts.</p>
+            <p class="flex items-center gap-1"><i class="fa-solid fa-lock text-slate-400"></i> Data video diproses sepenuhnya di browser tanpa diunggah ke server.</p>
+        </div>
+    </footer>
+
+    <script>
+        /**
+         * ARDHANA CLIP 9:16 - CLIENT-SIDE ENGINE
+         * Modular Vanilla JS implementation for 9:16 video processing, canvas rendering, & WebM export.
+         */
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const DOM = {
+                // Video & File Input
+                videoFileInput: document.getElementById('videoFileInput'),
+                sourceVideo: document.getElementById('sourceVideo'),
+                metaCard: document.getElementById('videoMetaCard'),
+                metaFileName: document.getElementById('metaFileName'),
+                metaDuration: document.getElementById('metaDuration'),
+                metaResolution: document.getElementById('metaResolution'),
+                metaFileSize: document.getElementById('metaFileSize'),
+                placeholderState: document.getElementById('placeholderState'),
+
+                // Canvas & Overlays
+                previewCanvas: document.getElementById('previewCanvas'),
+                safeZoneOverlay: document.getElementById('safeZoneOverlay'),
+                toggleSafeZoneBtn: document.getElementById('toggleSafeZoneBtn'),
+
+                // Playback Toolbar
+                timelineSlider: document.getElementById('timelineSlider'),
+                currentTimeDisplay: document.getElementById('currentTimeDisplay'),
+                durationDisplay: document.getElementById('durationDisplay'),
+                playPauseBtn: document.getElementById('playPauseBtn'),
+                previewClipBtn: document.getElementById('previewClipBtn'),
+
+                // Trimmer Controls
+                startTimeInput: document.getElementById('startTimeInput'),
+                endTimeInput: document.getElementById('endTimeInput'),
+                clipDurationBadge: document.getElementById('clipDurationBadge'),
+
+                // Crop & Framing
+                cropSlider: document.getElementById('cropSlider'),
+                cropValDisplay: document.getElementById('cropValDisplay'),
+                presetLeftBtn: document.getElementById('presetLeftBtn'),
+                presetCenterBtn: document.getElementById('presetCenterBtn'),
+                presetRightBtn: document.getElementById('presetRightBtn'),
+
+                // Caption Controls
+                captionTextInput: document.getElementById('captionTextInput'),
+                fontFamilySelect: document.getElementById('fontFamilySelect'),
+                fontSizeSlider: document.getElementById('fontSizeSlider'),
+                fontSizeDisplay: document.getElementById('fontSizeDisplay'),
+                textColorInput: document.getElementById('textColorInput'),
+                textColorHex: document.getElementById('textColorHex'),
+                strokeSizeSlider: document.getElementById('strokeSizeSlider'),
+                strokeSizeDisplay: document.getElementById('strokeSizeDisplay'),
+                strokeColorInput: document.getElementById('strokeColorInput'),
+                strokeColorHex: document.getElementById('strokeColorHex'),
+                bgTypeSelect: document.getElementById('bgTypeSelect'),
+                bgColorInput: document.getElementById('bgColorInput'),
+                bgColorHex: document.getElementById('bgColorHex'),
+                captionWidthSlider: document.getElementById('captionWidthSlider'),
+                captionWidthDisplay: document.getElementById('captionWidthDisplay'),
+                posXSlider: document.getElementById('posXSlider'),
+                posXDisplay: document.getElementById('posXDisplay'),
+                posYSlider: document.getElementById('posYSlider'),
+                posYDisplay: document.getElementById('posYDisplay'),
+                posTopBtn: document.getElementById('posTopBtn'),
+                posCenterBtn: document.getElementById('posCenterBtn'),
+                posBottomBtn: document.getElementById('posBottomBtn'),
+                alignBtns: document.querySelectorAll('.align-btn'),
+
+                // Export & Toasts
+                exportVideoBtn: document.getElementById('exportVideoBtn'),
+                exportOverlay: document.getElementById('exportOverlay'),
+                exportStatusTitle: document.getElementById('exportStatusTitle'),
+                exportStatusDesc: document.getElementById('exportStatusDesc'),
+                exportProgressBar: document.getElementById('exportProgressBar'),
+                exportPercentText: document.getElementById('exportPercentText'),
+                toastMessage: document.getElementById('toastMessage'),
+                toastIcon: document.getElementById('toastIcon'),
+                toastText: document.getElementById('toastText')
+            };
+
+            const ctx = DOM.previewCanvas.getContext('2d');
+            let isVideoLoaded = false;
+            let isPlaying = false;
+            let animationFrameId = null;
+            let isClipPreviewing = false;
+            let textAlignment = 'center';
+
+            const state = {
+                cropPercent: 50,
+                startTime: 0,
+                endTime: 10,
+                captionText: "Ini alasan kenapa fitur ini sangat berguna untuk content creator!",
+                fontFamily: "Anton",
+                fontSize: 60,
+                textColor: "#FFFFFF",
+                strokeSize: 4,
+                strokeColor: "#000000",
+                bgType: "semi",
+                bgColor: "#000000",
+                captionWidthPercent: 80,
+                posXPercent: 50,
+                posYPercent: 80
+            };
+
+            function showToast(message, type = 'info') {
+                DOM.toastText.textContent = message;
+                if (type === 'error') {
+                    DOM.toastIcon.className = 'fa-solid fa-triangle-exclamation text-red-500';
+                    DOM.toastMessage.classList.remove('border-brand');
+                    DOM.toastMessage.classList.add('border-red-500');
+                } else {
+                    DOM.toastIcon.className = 'fa-solid fa-circle-check text-brand';
+                    DOM.toastMessage.classList.remove('border-red-500');
+                    DOM.toastMessage.classList.add('border-brand');
+                }
+                DOM.toastMessage.classList.remove('hidden');
+                setTimeout(() => {
+                    DOM.toastMessage.classList.add('hidden');
+                }, 3000);
+            }
+
+            function formatTime(seconds) {
+                if (isNaN(seconds)) return "00:00";
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                const ms = Math.floor((seconds % 1) * 10);
+                return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            DOM.videoFileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const validTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska'];
+                if (!validTypes.includes(file.type) && !file.name.match(/\.(mp4|webm|mov|mkv)$/i)) {
+                    showToast('Format video tidak didukung! Gunakan MP4, WebM, MOV, atau MKV.', 'error');
+                    return;
+                }
+
+                const fileURL = URL.createObjectURL(file);
+                DOM.sourceVideo.src = fileURL;
+
+                DOM.metaFileName.textContent = file.name;
+                DOM.metaFileSize.textContent = formatFileSize(file.size);
+
+                DOM.sourceVideo.onloadedmetadata = () => {
+                    isVideoLoaded = true;
+                    const duration = DOM.sourceVideo.duration;
+
+                    DOM.metaDuration.textContent = `${duration.toFixed(1)}s`;
+                    DOM.metaResolution.textContent = `${DOM.sourceVideo.videoWidth}x${DOM.sourceVideo.videoHeight}`;
+                    DOM.metaCard.classList.remove('hidden');
+                    DOM.placeholderState.classList.add('hidden');
+
+                    // Reset Trimmer
+                    DOM.startTimeInput.value = 0;
+                    DOM.endTimeInput.value = Math.min(10, duration).toFixed(1);
+                    DOM.startTimeInput.max = duration;
+                    DOM.endTimeInput.max = duration;
+                    DOM.timelineSlider.max = duration;
+
+                    DOM.playPauseBtn.disabled = false;
+                    DOM.previewClipBtn.disabled = false;
+                    DOM.exportVideoBtn.disabled = false;
+                    DOM.timelineSlider.disabled = false;
+
+                    updateTrimmerState();
+                    DOM.sourceVideo.currentTime = 0;
+                    renderFrame();
+                    showToast('Video berhasil dimuat!');
+                };
+
+                DOM.sourceVideo.onerror = () => {
+                    showToast('Gagal memuat file video.', 'error');
+                };
+            });
+
+            function updateTrimmerState() {
+                let start = parseFloat(DOM.startTimeInput.value) || 0;
+                let end = parseFloat(DOM.endTimeInput.value) || 0;
+                const duration = DOM.sourceVideo.duration || 10;
+
+                if (start < 0) start = 0;
+                if (end > duration) end = duration;
+                if (start >= end) start = Math.max(0, end - 1);
+
+                state.startTime = start;
+                state.endTime = end;
+
+                DOM.startTimeInput.value = start;
+                DOM.endTimeInput.value = end;
+
+                const clipDuration = end - start;
+                DOM.clipDurationBadge.textContent = `${clipDuration.toFixed(1)} detik`;
+            }
+
+            DOM.startTimeInput.addEventListener('change', updateTrimmerState);
+            DOM.endTimeInput.addEventListener('change', updateTrimmerState);
+
+            DOM.timelineSlider.addEventListener('input', () => {
+                if (!isVideoLoaded) return;
+                DOM.sourceVideo.currentTime = parseFloat(DOM.timelineSlider.value);
+                renderFrame();
+            });
+
+            function togglePlayPause() {
+                if (!isVideoLoaded) return;
+                if (isPlaying) {
+                    DOM.sourceVideo.pause();
+                    isPlaying = false;
+                    DOM.playPauseBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+                } else {
+                    DOM.sourceVideo.play();
+                    isPlaying = true;
+                    DOM.playPauseBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+                    requestAnimationFrame(playbackLoop);
+                }
+            }
+
+            DOM.playPauseBtn.addEventListener('click', togglePlayPause);
+
+            function playbackLoop() {
+                if (!isPlaying) return;
+                
+                DOM.timelineSlider.value = DOM.sourceVideo.currentTime;
+                DOM.currentTimeDisplay.textContent = formatTime(DOM.sourceVideo.currentTime);
+                DOM.durationDisplay.textContent = formatTime(DOM.sourceVideo.duration);
+
+                // Stop if clip preview reaches end time
+                if (isClipPreviewing && DOM.sourceVideo.currentTime >= state.endTime) {
+                    DOM.sourceVideo.pause();
+                    isPlaying = false;
+                    isClipPreviewing = false;
+                    DOM.playPauseBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+                    showToast('Preview Clip selesai');
+                }
+
+                renderFrame();
+                if (isPlaying) {
+                    requestAnimationFrame(playbackLoop);
+                }
+            }
+
+            DOM.previewClipBtn.addEventListener('click', () => {
+                if (!isVideoLoaded) return;
+                updateTrimmerState();
+                DOM.sourceVideo.currentTime = state.startTime;
+                isClipPreviewing = true;
+                if (!isPlaying) {
+                    togglePlayPause();
+                }
+                showToast('Memutar Preview Clip...');
+            });
+
+            DOM.cropSlider.addEventListener('input', (e) => {
+                state.cropPercent = parseFloat(e.target.value);
+                DOM.cropValDisplay.textContent = `${state.cropPercent}%`;
+                renderFrame();
+            });
+
+            DOM.presetLeftBtn.addEventListener('click', () => {
+                state.cropPercent = 15;
+                DOM.cropSlider.value = 15;
+                DOM.cropValDisplay.textContent = '15%';
+                renderFrame();
+            });
+
+            DOM.presetCenterBtn.addEventListener('click', () => {
+                state.cropPercent = 50;
+                DOM.cropSlider.value = 50;
+                DOM.cropValDisplay.textContent = '50%';
+                renderFrame();
+            });
+
+            DOM.presetRightBtn.addEventListener('click', () => {
+                state.cropPercent = 85;
+                DOM.cropSlider.value = 85;
+                DOM.cropValDisplay.textContent = '85%';
+                renderFrame();
+            });
+
+            DOM.captionTextInput.addEventListener('input', (e) => {
+                state.captionText = e.target.value;
+                renderFrame();
+            });
+
+            DOM.fontFamilySelect.addEventListener('change', (e) => {
+                state.fontFamily = e.target.value;
+                renderFrame();
+            });
+
+            DOM.fontSizeSlider.addEventListener('input', (e) => {
+                state.fontSize = parseInt(e.target.value);
+                DOM.fontSizeDisplay.textContent = `${state.fontSize}px`;
+                renderFrame();
+            });
+
+            DOM.textColorInput.addEventListener('input', (e) => {
+                state.textColor = e.target.value;
+                DOM.textColorHex.textContent = e.target.value.toUpperCase();
+                renderFrame();
+            });
+
+            DOM.strokeSizeSlider.addEventListener('input', (e) => {
+                state.strokeSize = parseInt(e.target.value);
+                DOM.strokeSizeDisplay.textContent = `${state.strokeSize}px`;
+                renderFrame();
+            });
+
+            DOM.strokeColorInput.addEventListener('input', (e) => {
+                state.strokeColor = e.target.value;
+                DOM.strokeColorHex.textContent = e.target.value.toUpperCase();
+                renderFrame();
+            });
+
+            DOM.bgTypeSelect.addEventListener('change', (e) => {
+                state.bgType = e.target.value;
+                renderFrame();
+            });
+
+            DOM.bgColorInput.addEventListener('input', (e) => {
+                state.bgColor = e.target.value;
+                DOM.bgColorHex.textContent = e.target.value.toUpperCase();
+                renderFrame();
+            });
+
+            DOM.captionWidthSlider.addEventListener('input', (e) => {
+                state.captionWidthPercent = parseInt(e.target.value);
+                DOM.captionWidthDisplay.textContent = `${state.captionWidthPercent}%`;
+                renderFrame();
+            });
+
+            DOM.posXSlider.addEventListener('input', (e) => {
+                state.posXPercent = parseInt(e.target.value);
+                DOM.posXDisplay.textContent = `${state.posXPercent}%`;
+                renderFrame();
+            });
+
+            DOM.posYSlider.addEventListener('input', (e) => {
+                state.posYPercent = parseInt(e.target.value);
+                DOM.posYDisplay.textContent = `${state.posYPercent}%`;
+                renderFrame();
+            });
+
+            // Position Presets
+            DOM.posTopBtn.addEventListener('click', () => {
+                state.posYPercent = 20;
+                DOM.posYSlider.value = 20;
+                DOM.posYDisplay.textContent = '20%';
+                renderFrame();
+            });
+
+            DOM.posCenterBtn.addEventListener('click', () => {
+                state.posYPercent = 50;
+                DOM.posYSlider.value = 50;
+                DOM.posYDisplay.textContent = '50%';
+                renderFrame();
+            });
+
+            DOM.posBottomBtn.addEventListener('click', () => {
+                state.posYPercent = 80;
+                DOM.posYSlider.value = 80;
+                DOM.posYDisplay.textContent = '80%';
+                renderFrame();
+            });
+
+            // Alignment buttons
+            DOM.alignBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    DOM.alignBtns.forEach(b => {
+                        b.classList.remove('bg-brand', 'text-white', 'active');
+                        b.classList.add('text-slate-400');
+                    });
+                    btn.classList.add('bg-brand', 'text-white', 'active');
+                    btn.classList.remove('text-slate-400');
+                    textAlignment = btn.getAttribute('data-align');
+                    renderFrame();
+                });
+            });
+
+            // Safe zone toggle
+            DOM.toggleSafeZoneBtn.addEventListener('click', () => {
+                DOM.safeZoneOverlay.classList.toggle('hidden');
+            });
+
+            function renderFrame() {
+                const canvas = DOM.previewCanvas;
+                const canvasWidth = 1080;
+                const canvasHeight = 1920;
+
+                // Clear Canvas
+                ctx.fillStyle = '#020617'; // Slate 950
+                ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+                if (isVideoLoaded && DOM.sourceVideo.readyState >= 2) {
+                    const vw = DOM.sourceVideo.videoWidth;
+                    const vh = DOM.sourceVideo.videoHeight;
+
+                    // Calculate 9:16 Aspect ratio cropping parameters
+                    const targetAspect = 9 / 16;
+                    const videoAspect = vw / vh;
+
+                    let sWidth, sHeight, sx, sy;
+
+                    if (videoAspect > targetAspect) {
+                        // Video is wider than 9:16 (Landscape)
+                        sHeight = vh;
+                        sWidth = vh * targetAspect;
+                        sy = 0;
+                        // Calculate horizontal offset based on crop percentage slider
+                        const maxSx = vw - sWidth;
+                        sx = maxSx * (state.cropPercent / 100);
+                    } else {
+                        // Video is taller or equal to 9:16
+                        sWidth = vw;
+                        sHeight = vw / targetAspect;
+                        sx = 0;
+                        sy = (vh - sHeight) / 2;
+                    }
+
+                    // Draw cropped video onto canvas
+                    ctx.drawImage(DOM.sourceVideo, sx, sy, sWidth, sHeight, 0, 0, canvasWidth, canvasHeight);
+                }
+
+                // Render Captions
+                if (state.captionText.trim() !== '') {
+                    renderCaptionOverlay(canvasWidth, canvasHeight);
+                }
+            }
+
+            function renderCaptionOverlay(canvasWidth, canvasHeight) {
+                const fontName = state.fontFamily;
+                const fontSize = state.fontSize;
+                ctx.font = `bold ${fontSize}px "${fontName}", sans-serif`;
+                ctx.textAlign = textAlignment;
+                ctx.textBaseline = 'middle';
+
+                const maxLineWidth = (canvasWidth * (state.captionWidthPercent / 100));
+                const lines = wrapText(ctx, state.captionText, maxLineWidth);
+                const lineHeight = fontSize * 1.25;
+                const totalTextHeight = lines.length * lineHeight;
+
+                // Calculate Position Center X, Y
+                const posX = (canvasWidth * (state.posXPercent / 100));
+                const posY = (canvasHeight * (state.posYPercent / 100));
+
+                const paddingX = 24;
+                const paddingY = 16;
+
+                // Render Background if enabled
+                if (state.bgType !== 'none') {
+                    let maxLineWidthCalculated = 0;
+                    lines.forEach(line => {
+                        const metrics = ctx.measureText(line);
+                        if (metrics.width > maxLineWidthCalculated) {
+                            maxLineWidthCalculated = metrics.width;
+                        }
+                    });
+
+                    const bgWidth = maxLineWidthCalculated + (paddingX * 2);
+                    const bgHeight = totalTextHeight + (paddingY * 2);
+                    
+                    let bgX = posX - (bgWidth / 2);
+                    if (textAlignment === 'left') bgX = posX - paddingX;
+                    if (textAlignment === 'right') bgX = posX - bgWidth + paddingX;
+                    const bgY = posY - (bgHeight / 2);
+
+                    ctx.save();
+                    if (state.bgType === 'semi') {
+                        ctx.globalAlpha = 0.75;
+                    } else {
+                        ctx.globalAlpha = 1.0;
+                    }
+                    ctx.fillStyle = state.bgColor;
+                    // Draw rounded rect for caption bg
+                    ctx.beginPath();
+                    ctx.roundRect(bgX, bgY, bgWidth, bgHeight, 16);
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                // Render Text & Stroke
+                let startY = posY - (totalTextHeight / 2) + (lineHeight / 2);
+
+                lines.forEach((line) => {
+                    // Outline / Stroke
+                    if (state.strokeSize > 0) {
+                        ctx.strokeStyle = state.strokeColor;
+                        ctx.lineWidth = state.strokeSize * 2;
+                        ctx.lineJoin = 'round';
+                        ctx.strokeText(line, posX, startY);
+                    }
+
+                    // Fill Text
+                    ctx.fillStyle = state.textColor;
+                    ctx.fillText(line, posX, startY);
+
+                    startY += lineHeight;
+                });
+            }
+
+            // Auto-wrap text helper
+            function wrapText(context, text, maxWidth) {
+                const words = text.split(' ');
+                const lines = [];
+                let currentLine = words[0] || '';
+
+                for (let i = 1; i < words.length; i++) {
+                    const word = words[i];
+                    const width = context.measureText(currentLine + ' ' + word).width;
+                    if (width < maxWidth) {
+                        currentLine += ' ' + word;
+                    } else {
+                        lines.push(currentLine);
+                        currentLine = word;
+                    }
+                }
+                lines.push(currentLine);
+                return lines;
+            }
+
+            // Initial Draw
+            renderFrame();
+
+            DOM.exportVideoBtn.addEventListener('click', async () => {
+                if (!isVideoLoaded) return;
+
+                updateTrimmerState();
+                DOM.exportOverlay.classList.remove('hidden');
+                DOM.exportProgressBar.style.width = '0%';
+                DOM.exportPercentText.textContent = '0%';
+
+                const stream = DOM.previewCanvas.captureStream(30); // 30 FPS Canvas Stream
+
+                // Setup Audio Synchronization via Web Audio API if audio track exists
+                let audioCtx, sourceNode, destNode;
+                try {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    sourceNode = audioCtx.createMediaElementSource(DOM.sourceVideo);
+                    destNode = audioCtx.createMediaStreamDestination();
+                    
+                    sourceNode.connect(destNode);
+                    sourceNode.connect(audioCtx.destination);
+
+                    const audioTracks = destNode.stream.getAudioTracks();
+                    if (audioTracks.length > 0) {
+                        stream.addTrack(audioTracks[0]);
+                    }
+                } catch (err) {
+                    console.warn("Audio Context creation or track capture bypassed:", err);
+                }
+
+                // Initialize MediaRecorder
+                let options = { mimeType: 'video/webm;codecs=vp9,opus' };
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                    options = { mimeType: 'video/webm;codecs=vp8,opus' };
+                    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                        options = { mimeType: 'video/webm' };
+                    }
+                }
+
+                let mediaRecorder;
+                try {
+                    mediaRecorder = new MediaRecorder(stream, options);
+                } catch (e) {
+                    showToast('Format eksport tidak didukung browser ini.', 'error');
+                    DOM.exportOverlay.classList.add('hidden');
+                    return;
+                }
+
+                const recordedChunks = [];
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `ardhana-clip-9x16-${Date.now()}.webm`;
+                    document.body.appendChild(a);
+                    a.click();
+                    
+                    setTimeout(() => {
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+                    }, 100);
+
+                    DOM.exportOverlay.classList.add('hidden');
+                    showToast('Video berhasil dieksport dan diunduh!');
+                };
+
+                // Prepare video for recording clip duration
+                DOM.sourceVideo.currentTime = state.startTime;
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    await audioCtx.resume();
+                }
+
+                await DOM.sourceVideo.play();
+                isPlaying = true;
+                mediaRecorder.start();
+
+                const totalClipTime = state.endTime - state.startTime;
+
+                function checkExportProgress() {
+                    const currentRecorded = DOM.sourceVideo.currentTime - state.startTime;
+                    const progress = Math.min(100, Math.max(0, (currentRecorded / totalClipTime) * 100));
+
+                    DOM.exportProgressBar.style.width = `${progress.toFixed(0)}%`;
+                    DOM.exportPercentText.textContent = `${progress.toFixed(0)}%`;
+
+                    renderFrame();
+
+                    if (DOM.sourceVideo.currentTime >= state.endTime || DOM.sourceVideo.paused) {
+                        DOM.sourceVideo.pause();
+                        isPlaying = false;
+                        if (mediaRecorder.state !== 'inactive') {
+                            mediaRecorder.stop();
+                        }
+                    } else {
+                        requestAnimationFrame(checkExportProgress);
+                    }
+                }
+
+                requestAnimationFrame(checkExportProgress);
+            });
+
+        });
+    </script>
+</body>
+</html>
