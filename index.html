@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="id" class="dark">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>KlipKilat 9:16 — Studio YouTube Clipper & Shorts Generator</title>
-  
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KlipKilat 9:16 — YouTube Clipper & Shorts Generator (.MP4)</title>
+
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
+
   <!-- Google Fonts: Inter & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,27 +21,27 @@
           fontFamily: {
             sans: ['Inter', 'sans-serif'],
             mono: ['JetBrains Mono', 'monospace'],
-          },
-          colors: {
-            brand: {
-              50: '#eef2ff',
-              400: '#818cf8',
-              500: '#6366f1',
-              600: '#4f46e5',
-            }
           }
         }
       }
-    }
+    };
   </script>
 
   <style>
-    /* Custom styling untuk scrollbar & slider presisi */
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #09090b;
-      color: #f4f4f5;
-      overflow-x: hidden;
+    /* Kustomisasi scrollbar & slider agar tampak modern */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #09090b;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #27272a;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3f3f46;
     }
 
     input[type="range"] {
@@ -50,1140 +50,1102 @@
       background: transparent;
       cursor: pointer;
     }
-
     input[type="range"]::-webkit-slider-runnable-track {
       height: 6px;
-      border-radius: 999px;
+      border-radius: 9999px;
       background: #27272a;
     }
-
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
       width: 18px;
       height: 18px;
-      border-radius: 50%;
+      border-radius: 9999px;
       background: #6366f1;
       border: 2px solid #ffffff;
       margin-top: -6px;
-      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.5);
-      transition: transform 0.15s ease;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
     }
 
-    input[type="range"]::-webkit-slider-thumb:hover {
-      transform: scale(1.15);
-    }
-
-    /* Hilangkan panah default input number agar tampilan timecode bersih */
-    input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button {
+    /* Hilangkan panah default input number */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
       -webkit-appearance: none;
       margin: 0;
     }
-    input[type=number] {
+    input[type="number"] {
       -moz-appearance: textfield;
-    }
-
-    /* Pola garis miring halus untuk area di luar potongan klip */
-    .timeline-unselected {
-      background-image: repeating-linear-gradient(
-        -45deg,
-        rgba(39, 39, 42, 0.5),
-        rgba(39, 39, 42, 0.5) 6px,
-        rgba(24, 24, 27, 0.8) 6px,
-        rgba(24, 24, 27, 0.8) 12px
-      );
-    }
-
-    /* Animasi denyut indikator rekaman */
-    @keyframes pulse-ring {
-      0% { transform: scale(0.95); opacity: 0.9; }
-      70% { transform: scale(1.2); opacity: 0; }
-      100% { transform: scale(0.95); opacity: 0; }
-    }
-    .rec-pulse::before {
-      content: '';
-      position: absolute;
-      inset: -4px;
-      border-radius: 9999px;
-      background-color: #ef4444;
-      animation: pulse-ring 1.5s infinite;
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+<body class="bg-zinc-950 text-zinc-100 font-sans antialiased selection:bg-indigo-500 selection:text-white min-h-screen flex flex-col">
 
-  <!-- ==================== HEADER / NAVBAR ==================== -->
-  <header class="sticky top-0 z-40 bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800/80">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-      <!-- Brand Identity -->
+  <!-- Toast Notification Container (Pengganti alert) -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <!-- Top Navbar -->
+  <header class="sticky top-0 z-30 border-b border-zinc-800/80 bg-zinc-950/85 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 shrink-0">
-          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z" />
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <rect x="7" y="2" width="10" height="20" rx="2.5" />
+            <path d="M10 9.5l5 2.5-5 2.5v-5z" fill="currentColor" stroke="none" />
           </svg>
         </div>
         <div>
           <div class="flex items-center gap-2">
             <h1 class="font-extrabold text-base sm:text-lg tracking-tight text-white">KlipKilat <span class="text-indigo-400">9:16</span></h1>
-            <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              Shorts & Reels Studio
+            <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+              Export .MP4
             </span>
           </div>
-          <p class="text-xs text-zinc-400 hidden sm:block">Ubah Link YouTube ke Klip Vertikal 15–30 Detik Secara Presisi</p>
+          <p class="text-xs text-zinc-400 hidden sm:block">YouTube Clipper Otomatis 9:16 • Durasi 15–30 Detik</p>
         </div>
       </div>
 
-      <!-- Indikator Alur Kerja (Desktop) -->
-      <div class="hidden lg:flex items-center gap-2 text-xs font-medium bg-zinc-900/90 border border-zinc-800 px-3.5 py-1.5 rounded-full">
-        <span class="flex items-center gap-1.5 text-indigo-400">
-          <span class="w-4 h-4 rounded-full bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-[10px] font-bold">1</span>
-          Link YouTube
-        </span>
-        <span class="text-zinc-600">→</span>
-        <span class="flex items-center gap-1.5 text-emerald-400">
-          <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-[10px] font-bold">2</span>
-          Potong 15–30d
-        </span>
-        <span class="text-zinc-600">→</span>
-        <span class="flex items-center gap-1.5 text-pink-400">
-          <span class="w-4 h-4 rounded-full bg-pink-500/20 text-pink-300 flex items-center justify-center text-[10px] font-bold">3</span>
-          Auto 9:16
-        </span>
-      </div>
-
-      <!-- Tombol Simpan Klip & Status -->
       <div class="flex items-center gap-2">
-        <button onclick="saveCurrentClipToQueue()" class="px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/80 text-xs sm:text-sm font-semibold text-zinc-200 flex items-center gap-2 transition active:scale-95">
-          <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+        <button onclick="loadSampleVideo()" class="px-3 py-2 rounded-xl text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 transition">
+          Video Contoh
+        </button>
+        <button onclick="openExportModal()" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/25 transition flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
           </svg>
-          <span>Simpan Klip</span>
-          <span id="saved-count-badge" class="px-1.5 py-0.5 text-[11px] rounded-md bg-indigo-500/20 text-indigo-300 font-mono">0</span>
+          <span>Unduh .MP4</span>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- ==================== MAIN WORKSPACE ==================== -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+  <!-- Main Workspace -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-      <!-- ==================== KOLOM KIRI: KONTROL & TIMELINE (7 KOLOM) ==================== -->
-      <div class="lg:col-span-7 space-y-5">
+    <!-- KOLOM KIRI: Alur Kerja Input & Kontrol Pemotongan (7 Kolom) -->
+    <div class="lg:col-span-7 space-y-5">
 
-        <!-- STEP 1: INPUT LINK YOUTUBE -->
-        <section class="bg-zinc-900/70 border border-zinc-800/90 rounded-2xl p-4 sm:p-5 shadow-xl">
-          <div class="flex items-center justify-between gap-2 mb-3">
-            <div class="flex items-center gap-2.5">
-              <span class="w-6 h-6 rounded-lg bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 text-xs font-bold flex items-center justify-center">1</span>
-              <h2 class="font-bold text-sm sm:text-base text-white">Masukkan Link Video YouTube</h2>
-            </div>
-            <!-- Upload File Lokal Alternatif -->
-            <label class="cursor-pointer inline-flex items-center gap-1.5 text-xs font-medium text-zinc-400 hover:text-white bg-zinc-800/80 hover:bg-zinc-800 px-3 py-1.5 rounded-lg border border-zinc-700/60 transition">
-              <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-              </svg>
-              <span>Atau Upload MP4</span>
-              <input type="file" id="local-video-input" accept="video/mp4,video/webm,video/*" class="hidden" onchange="handleLocalVideoUpload(event)" />
-            </label>
+      <!-- LANGKAH 1: Input Link YouTube / Upload Video -->
+      <section class="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-xl">
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-6 h-6 rounded-lg bg-indigo-500/20 text-indigo-400 font-bold text-xs flex items-center justify-center border border-indigo-500/30">1</span>
+            <h2 class="font-bold text-sm sm:text-base text-white">Masukkan Link YouTube</h2>
           </div>
+          <label class="cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-semibold transition">
+            <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            <span>Atau Pilih File MP4 Lokal</span>
+            <input type="file" id="local-video-input" accept="video/mp4,video/webm,video/quicktime" class="hidden" onchange="handleLocalVideoUpload(event)">
+          </label>
+        </div>
 
-          <!-- Form Input URL -->
-          <div class="flex flex-col sm:flex-row gap-2.5">
-            <div class="relative flex-1">
-              <div class="absolute inset-y-0 left-3.5 flex items-center pointer-events-none">
-                <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                </svg>
-              </div>
-              <input 
-                type="text" 
-                id="youtube-url-input" 
-                placeholder="Tempel link YouTube di sini (contoh: https://youtu.be/...)" 
-                value="https://www.youtube.com/watch?v=aqz-KE-bpKQ"
-                class="w-full pl-11 pr-20 py-3 bg-zinc-950 border border-zinc-700/90 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl text-sm text-white placeholder-zinc-500 outline-none transition"
-                onkeydown="if(event.key === 'Enter') loadYouTubeFromInput()"
-              />
-              <button 
-                type="button"
-                onclick="pasteFromClipboard()"
-                class="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-[11px] font-semibold text-zinc-300 transition"
-                title="Tempel dari Clipboard"
-              >
-                Tempel
-              </button>
-            </div>
-            <button 
-              type="button"
-              onclick="loadYouTubeFromInput()"
-              class="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 transition active:scale-95 shrink-0"
+        <form onsubmit="handleYoutubeSubmit(event)" class="flex flex-col sm:flex-row gap-2.5">
+          <div class="relative flex-1">
+            <input
+              type="text"
+              id="youtube-url-input"
+              placeholder="Tempel link YouTube (contoh: https://www.youtube.com/watch?v=dQw4w9WgXcQ)"
+              class="w-full bg-zinc-950 border border-zinc-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl pl-3.5 pr-10 py-3 text-sm text-white placeholder-zinc-500 outline-none transition"
             >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <button type="button" onclick="clearUrlInput()" title="Bersihkan URL" class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 text-zinc-500 hover:text-zinc-300">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
-              <span>Muat & Auto 9:16</span>
             </button>
           </div>
+          <button type="submit" class="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-bold text-sm text-white shadow-lg shadow-indigo-600/20 transition shrink-0">
+            Muat & Potong 9:16
+          </button>
+        </form>
 
-          <!-- Sample Quick-Test Links & Info Video Aktif -->
-          <div class="mt-3 pt-3 border-t border-zinc-800/80 flex flex-wrap items-center justify-between gap-2">
-            <div class="flex flex-wrap items-center gap-1.5 text-xs">
-              <span class="text-zinc-500">Coba cepat:</span>
-              <button onclick="loadSampleVideo('https://www.youtube.com/watch?v=aqz-KE-bpKQ', 15, 35)" class="px-2.5 py-1 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 transition">🎬 Animasi 4K</button>
-              <button onclick="loadSampleVideo('https://www.youtube.com/watch?v=LXb3EKWsInQ', 40, 62)" class="px-2.5 py-1 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 transition">🌿 Alam Costa Rica</button>
-              <button onclick="loadSampleVideo('https://www.youtube.com/watch?v=jNQXAC9IVRw', 0, 18)" class="px-2.5 py-1 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 transition">🦁 Klip Klasik</button>
-            </div>
-            <div id="video-meta-badge" class="text-xs text-zinc-400 truncate max-w-xs font-medium">
-              Memuat metadata video...
-            </div>
+        <!-- Info Video Aktif -->
+        <div class="mt-3.5 pt-3 border-t border-zinc-800/80 flex items-center justify-between gap-3 text-xs">
+          <div class="truncate">
+            <span class="text-zinc-500">Video Aktif:</span>
+            <span id="active-video-title" class="font-semibold text-zinc-200 ml-1">Siap memuat video YouTube...</span>
           </div>
-        </section>
+          <span id="total-duration-badge" class="font-mono px-2.5 py-1 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-300 shrink-0">
+            Total: 00:00
+          </span>
+        </div>
+      </section>
 
-        <!-- STEP 2: ATUR MENIT & DETIK POTONGAN (15 - 30 DETIK) -->
-        <section class="bg-zinc-900/70 border border-zinc-800/90 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <div class="flex items-center gap-2.5">
-              <span class="w-6 h-6 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center justify-center">2</span>
-              <div>
-                <h2 class="font-bold text-sm sm:text-base text-white">Atur Menit & Detik Potongan</h2>
-                <p class="text-xs text-zinc-400">Tentukan titik awal dan akhir klip (Standar Viral: 15–30 detik)</p>
-              </div>
-            </div>
-
-            <!-- Badge Status Durasi -->
-            <div id="duration-status-badge" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold font-mono">
-              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-              <span id="clip-duration-text">20 Detik (Ideal 15-30d)</span>
-            </div>
+      <!-- LANGKAH 2: Pengaturan Menit & Detik Pemotongan (15 - 30 Detik) -->
+      <section class="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="w-6 h-6 rounded-lg bg-indigo-500/20 text-indigo-400 font-bold text-xs flex items-center justify-center border border-indigo-500/30">2</span>
+            <h2 class="font-bold text-sm sm:text-base text-white">Atur Menit & Detik Potongan</h2>
           </div>
 
-          <!-- Grid Input Waktu Mulai & Waktu Akhir (Menit & Detik) -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <!-- KARTU WAKTU MULAI (START) -->
-            <div class="bg-zinc-950/90 border border-zinc-800 rounded-xl p-3.5 space-y-2.5">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
-                  <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
-                  Mulai Potong (Start)
-                </span>
-                <button onclick="setStartFromCurrentPlayhead()" class="text-[11px] font-semibold text-zinc-400 hover:text-indigo-300 underline decoration-dotted transition">
-                  Ambil posisi video
-                </button>
-              </div>
+          <!-- Status Durasi Klip -->
+          <div class="flex items-center gap-2">
+            <span id="clip-duration-pill" class="font-mono text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+              Durasi Klip: 20 Detik
+            </span>
+          </div>
+        </div>
 
-              <div class="flex items-center justify-between gap-2">
-                <!-- Tombol -1 Detik -->
-                <button onclick="nudgeStart(-1)" class="p-2.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/70 text-zinc-300 font-mono text-xs font-bold active:scale-95 transition" title="Mundur 1 detik">-1d</button>
-
-                <!-- Input Menit & Detik -->
-                <div class="flex items-center gap-1.5 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-1.5">
-                  <div class="text-center">
-                    <input type="number" id="start-min" min="0" max="999" value="0" onchange="onTimeInputChange()" class="w-11 bg-transparent text-center font-mono text-lg font-bold text-white outline-none" />
-                    <span class="block text-[9px] uppercase text-zinc-500 font-semibold -mt-1">Menit</span>
-                  </div>
-                  <span class="font-mono text-xl font-bold text-zinc-500 pb-2">:</span>
-                  <div class="text-center">
-                    <input type="number" id="start-sec" min="0" max="59" value="15" onchange="onTimeInputChange()" class="w-11 bg-transparent text-center font-mono text-lg font-bold text-white outline-none" />
-                    <span class="block text-[9px] uppercase text-zinc-500 font-semibold -mt-1">Detik</span>
-                  </div>
-                </div>
-
-                <!-- Tombol +1 Detik -->
-                <button onclick="nudgeStart(1)" class="p-2.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/70 text-zinc-300 font-mono text-xs font-bold active:scale-95 transition" title="Maju 1 detik">+1d</button>
-              </div>
-            </div>
-
-            <!-- KARTU WAKTU AKHIR (END) -->
-            <div class="bg-zinc-950/90 border border-zinc-800 rounded-xl p-3.5 space-y-2.5">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-bold uppercase tracking-wider text-pink-400 flex items-center gap-1.5">
-                  <span class="w-2 h-2 rounded-full bg-pink-500"></span>
-                  Akhir Potong (End)
-                </span>
-                <button onclick="setEndFromCurrentPlayhead()" class="text-[11px] font-semibold text-zinc-400 hover:text-pink-300 underline decoration-dotted transition">
-                  Ambil posisi video
-                </button>
-              </div>
-
-              <div class="flex items-center justify-between gap-2">
-                <!-- Tombol -1 Detik -->
-                <button onclick="nudgeEnd(-1)" class="p-2.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/70 text-zinc-300 font-mono text-xs font-bold active:scale-95 transition" title="Mundur 1 detik">-1d</button>
-
-                <!-- Input Menit & Detik -->
-                <div class="flex items-center gap-1.5 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-1.5">
-                  <div class="text-center">
-                    <input type="number" id="end-min" min="0" max="999" value="0" onchange="onTimeInputChange()" class="w-11 bg-transparent text-center font-mono text-lg font-bold text-white outline-none" />
-                    <span class="block text-[9px] uppercase text-zinc-500 font-semibold -mt-1">Menit</span>
-                  </div>
-                  <span class="font-mono text-xl font-bold text-zinc-500 pb-2">:</span>
-                  <div class="text-center">
-                    <input type="number" id="end-sec" min="0" max="59" value="35" onchange="onTimeInputChange()" class="w-11 bg-transparent text-center font-mono text-lg font-bold text-white outline-none" />
-                    <span class="block text-[9px] uppercase text-zinc-500 font-semibold -mt-1">Detik</span>
-                  </div>
-                </div>
-
-                <!-- Tombol +1 Detik -->
-                <button onclick="nudgeEnd(1)" class="p-2.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/70 text-zinc-300 font-mono text-xs font-bold active:scale-95 transition" title="Maju 1 detik">+1d</button>
-              </div>
-            </div>
+        <!-- Preset Durasi Cepat & Kunci 15-30 Detik -->
+        <div class="flex flex-wrap items-center justify-between gap-2 bg-zinc-950/90 p-3 rounded-xl border border-zinc-800/80">
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="text-xs text-zinc-400 mr-1">Durasi Cepat:</span>
+            <button type="button" onclick="applyDurationPreset(15)" class="preset-btn px-2.5 py-1.5 rounded-lg text-xs font-bold bg-zinc-800 hover:bg-indigo-600 text-zinc-200 hover:text-white transition" data-sec="15">15d</button>
+            <button type="button" onclick="applyDurationPreset(20)" class="preset-btn px-2.5 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white transition" data-sec="20">20d</button>
+            <button type="button" onclick="applyDurationPreset(25)" class="preset-btn px-2.5 py-1.5 rounded-lg text-xs font-bold bg-zinc-800 hover:bg-indigo-600 text-zinc-200 hover:text-white transition" data-sec="25">25d</button>
+            <button type="button" onclick="applyDurationPreset(30)" class="preset-btn px-2.5 py-1.5 rounded-lg text-xs font-bold bg-zinc-800 hover:bg-indigo-600 text-zinc-200 hover:text-white transition" data-sec="30">30d</button>
           </div>
 
-          <!-- Preset Durasi Cepat & Kunci Otomatis 15-30 Detik -->
-          <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
-            <div class="flex flex-wrap items-center gap-1.5">
-              <span class="text-xs text-zinc-400 mr-1">Set Durasi:</span>
-              <button onclick="applyDurationPreset(15)" class="preset-btn px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-indigo-600 text-xs font-mono font-semibold text-zinc-200 hover:text-white transition" data-dur="15">15d</button>
-              <button onclick="applyDurationPreset(20)" class="preset-btn px-3 py-1.5 rounded-lg bg-indigo-600 text-xs font-mono font-semibold text-white transition" data-dur="20">20d</button>
-              <button onclick="applyDurationPreset(25)" class="preset-btn px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-indigo-600 text-xs font-mono font-semibold text-zinc-200 hover:text-white transition" data-dur="25">25d</button>
-              <button onclick="applyDurationPreset(30)" class="preset-btn px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-indigo-600 text-xs font-mono font-semibold text-zinc-200 hover:text-white transition" data-dur="30">30d</button>
-            </div>
+          <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+            <input type="checkbox" id="lock-15-30-toggle" checked onchange="handleLockToggle()" class="w-4 h-4 rounded accent-indigo-500">
+            <span class="text-xs font-medium text-zinc-300">Kunci 15–30 Detik</span>
+          </label>
+        </div>
 
-            <!-- Toggle Kunci Durasi 15-30 Detik -->
-            <label class="inline-flex items-center gap-2 cursor-pointer select-none">
-              <input type="checkbox" id="lock-duration-range" checked onchange="toggleDurationLock()" class="sr-only peer" />
-              <div class="w-9 h-5 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all relative peer-checked:bg-emerald-500"></div>
-              <span class="text-xs font-medium text-zinc-300">Kunci Otomatis 15–30 Detik</span>
-            </label>
-          </div>
+        <!-- Grid Input Titik Awal (Start) & Titik Akhir (End) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-          <!-- VISUAL TIMELINE SCRUBBER INTERAKTIF (DUAL HANDLE) -->
-          <div class="pt-2 space-y-2">
-            <div class="flex items-center justify-between text-[11px] font-mono text-zinc-400">
-              <span>00:00</span>
-              <span id="timeline-range-label" class="text-indigo-300 font-semibold">Potongan: 00:15 → 00:35</span>
-              <span id="total-duration-label">10:34</span>
-            </div>
-
-            <!-- Track Timeline -->
-            <div id="timeline-track" class="relative h-14 bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden select-none touch-none cursor-pointer">
-              <!-- Area Kiri (Tidak Terpilih) -->
-              <div id="timeline-left-mask" class="absolute inset-y-0 left-0 timeline-unselected pointer-events-none" style="width: 5%;"></div>
-              
-              <!-- Area Kanan (Tidak Terpilih) -->
-              <div id="timeline-right-mask" class="absolute inset-y-0 right-0 timeline-unselected pointer-events-none" style="width: 85%;"></div>
-
-              <!-- Kotak Seleksi Aktif (Bisa digeser seluruhnya!) -->
-              <div id="timeline-selection" class="absolute inset-y-0 bg-indigo-500/20 border-y-2 border-indigo-400 cursor-grab active:cursor-grabbing flex items-center justify-center" style="left: 5%; width: 10%;">
-                <span class="text-[10px] font-mono font-bold text-white/90 bg-zinc-950/70 px-1.5 py-0.5 rounded pointer-events-none truncate">
-                  Geser Klip
-                </span>
-
-                <!-- Handle Kiri (Start) -->
-                <div id="handle-start" class="absolute left-0 inset-y-0 w-4 -ml-2 bg-indigo-500 hover:bg-indigo-400 rounded-l-md cursor-ew-resize flex items-center justify-center shadow-lg z-10" title="Geser Waktu Mulai">
-                  <div class="w-0.5 h-5 bg-white rounded-full"></div>
-                </div>
-
-                <!-- Handle Kanan (End) -->
-                <div id="handle-end" class="absolute right-0 inset-y-0 w-4 -mr-2 bg-pink-500 hover:bg-pink-400 rounded-r-md cursor-ew-resize flex items-center justify-center shadow-lg z-10" title="Geser Waktu Akhir">
-                  <div class="w-0.5 h-5 bg-white rounded-full"></div>
-                </div>
-              </div>
-
-              <!-- Jarum Playhead Posisi Video -->
-              <div id="timeline-playhead" class="absolute inset-y-0 w-0.5 bg-emerald-400 shadow-[0_0_8px_#34d399] pointer-events-none z-20" style="left: 5%;">
-                <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 -ml-1 -mt-0.5"></div>
-              </div>
-            </div>
-            <p class="text-[11px] text-zinc-500">Tips: Seret pegangan <span class="text-indigo-400 font-semibold">biru (mulai)</span>, <span class="text-pink-400 font-semibold">merah muda (akhir)</span>, atau geser kotak tengah untuk memindahkan jendela 15–30 detik.</p>
-          </div>
-        </section>
-
-        <!-- STEP 3: PENGATURAN CROP 9:16 & OVERLAY VIRAL -->
-        <section class="bg-zinc-900/70 border border-zinc-800/90 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-              <span class="w-6 h-6 rounded-lg bg-pink-500/20 border border-pink-500/30 text-pink-400 text-xs font-bold flex items-center justify-center">3</span>
-              <h2 class="font-bold text-sm sm:text-base text-white">Framing Otomatis 9:16 & Judul Hook</h2>
-            </div>
-            <span class="text-xs font-mono text-zinc-400 bg-zinc-800 px-2.5 py-1 rounded-lg">1080 × 1920 px</span>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <!-- Mode Rasio 9:16 -->
-            <div class="space-y-2">
-              <label class="text-xs font-semibold text-zinc-300 block">Mode Tampilan 9:16</label>
-              <div class="grid grid-cols-2 gap-2">
-                <button type="button" id="mode-fill-btn" onclick="setCropMode('fill')" class="p-2.5 rounded-xl border border-indigo-500 bg-indigo-500/15 text-xs font-semibold text-white flex flex-col items-center gap-1 transition">
-                  <span class="w-4 h-6 border-2 border-indigo-400 bg-indigo-400/30 rounded-sm"></span>
-                  <span>Full Crop 9:16</span>
-                </button>
-                <button type="button" id="mode-blur-btn" onclick="setCropMode('blur')" class="p-2.5 rounded-xl border border-zinc-700 bg-zinc-950 hover:bg-zinc-800 text-xs font-semibold text-zinc-400 flex flex-col items-center gap-1 transition">
-                  <span class="w-4 h-6 border-2 border-zinc-500 flex items-center justify-center rounded-sm">
-                    <span class="w-full h-2.5 bg-zinc-400"></span>
-                  </span>
-                  <span>Fit + Blur BG</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Geser Fokus Horizontal (Pan X) -->
-            <div class="space-y-2">
-              <div class="flex items-center justify-between">
-                <label for="pan-x-slider" class="text-xs font-semibold text-zinc-300">Geser Fokus Subjek (Kiri/Kanan)</label>
-                <button onclick="resetPanX()" class="text-[11px] text-indigo-400 hover:underline">Tengah (0%)</button>
-              </div>
-              <div class="bg-zinc-950 border border-zinc-800 rounded-xl p-3 space-y-2">
-                <input type="range" id="pan-x-slider" min="-100" max="100" value="0" oninput="updatePanX(this.value)" class="w-full" />
-                <div class="flex justify-between text-[10px] font-mono text-zinc-500">
-                  <span>Kiri (-100%)</span>
-                  <span id="pan-x-value" class="text-zinc-300 font-bold">0%</span>
-                  <span>Kanan (+100%)</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Input Judul Hook Viral di Atas Video -->
-          <div class="pt-1 space-y-2">
+          <!-- KOTAK TITIK AWAL (MULAI) -->
+          <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3.5 space-y-2.5">
             <div class="flex items-center justify-between">
-              <label for="hook-text-input" class="text-xs font-semibold text-zinc-300">Teks Hook / Judul Viral (Opsional)</label>
-              <label class="inline-flex items-center gap-1.5 text-xs text-zinc-400 cursor-pointer">
-                <input type="checkbox" id="show-safezone-toggle" onchange="toggleSafeZone(this.checked)" class="rounded bg-zinc-800 border-zinc-600 text-indigo-500 focus:ring-0" />
-                <span>Panduan Safe-Zone TikTok/Reels</span>
+              <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">Titik Awal (Mulai)</span>
+              <button type="button" onclick="setStartFromCurrentPlayhead()" class="text-[11px] font-semibold px-2 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition">
+                Ambil Posisi Video
+              </button>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <div class="flex-1">
+                <label class="block text-[11px] text-zinc-500 mb-1">Menit</label>
+                <input type="number" id="start-min" min="0" value="0" onchange="onManualTimeInput('start')" class="w-full font-mono text-center text-lg font-bold bg-zinc-900 border border-zinc-700 focus:border-emerald-500 rounded-xl py-2 text-white outline-none">
+              </div>
+              <span class="text-xl font-bold text-zinc-500 pt-4">:</span>
+              <div class="flex-1">
+                <label class="block text-[11px] text-zinc-500 mb-1">Detik</label>
+                <input type="number" id="start-sec" min="0" max="59" value="10" onchange="onManualTimeInput('start')" class="w-full font-mono text-center text-lg font-bold bg-zinc-900 border border-zinc-700 focus:border-emerald-500 rounded-xl py-2 text-white outline-none">
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between gap-1.5 pt-1">
+              <button type="button" onclick="nudgeTime('start', -5)" class="flex-1 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-xs font-mono text-zinc-300 border border-zinc-800">-5d</button>
+              <button type="button" onclick="nudgeTime('start', -1)" class="flex-1 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-xs font-mono text-zinc-300 border border-zinc-800">-1d</button>
+              <button type="button" onclick="nudgeTime('start', 1)" class="flex-1 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-xs font-mono text-zinc-300 border border-zinc-800">+1d</button>
+              <button type="button" onclick="nudgeTime('start', 5)" class="flex-1 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-xs font-mono text-zinc-300 border border-zinc-800">+5d</button>
+            </div>
+          </div>
+
+          <!-- KOTAK TITIK AKHIR (SELESAI) -->
+          <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3.5 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-rose-400">Titik Akhir (Selesai)</span>
+              <button type="button" onclick="setEndFromCurrentPlayhead()" class="text-[11px] font-semibold px-2 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition">
+                Ambil Posisi Video
+              </button>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <div class="flex-1">
+                <label class="block text-[11px] text-zinc-500 mb-1">Menit</label>
+                <input type="number" id="end-min" min="0" value="0" onchange="onManualTimeInput('end')" class="w-full font-mono text-center text-lg font-bold bg-zinc-900 border border-zinc-700 focus:border-rose-500 rounded-xl py-2 text-white outline-none">
+              </div>
+              <span class="text-xl font-bold text-zinc-500 pt-4">:</span>
+              <div class="flex-1">
+                <label class="block text-[11px] text-zinc-500 mb-1">Detik</label>
+                <input type="number" id="end-sec" min="0" max="59" value="30" onchange="onManualTimeInput('end')" class="w-full font-mono text-center text-lg font-bold bg-zinc-900 border border-zinc-700 focus:border-rose-500 rounded-xl py-2 text-white outline-none">
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between gap-1.5 pt-1">
+              <button type="button" onclick="nudgeTime('end', -5)" class="flex-1 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-xs font-mono text-zinc-300 border border-zinc-800">-5d</button>
+              <button type="button" onclick="nudgeTime('end', -1)" class="flex-1 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-xs font-mono text-zinc-300 border border-zinc-800">-1d</button>
+              <button type="button" onclick="nudgeTime('end', 1)" class="flex-1 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-xs font-mono text-zinc-300 border border-zinc-800">+1d</button>
+              <button type="button" onclick="nudgeTime('end', 5)" class="flex-1 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-xs font-mono text-zinc-300 border border-zinc-800">+5d</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Visual Timeline Scrubber Interaktif (Touch & Mouse) -->
+        <div class="space-y-1.5 pt-1">
+          <div class="flex items-center justify-between text-[11px] font-mono text-zinc-400">
+            <span>00:00</span>
+            <span id="timeline-range-label" class="text-indigo-400 font-bold">Potongan: 00:10 — 00:30 (20d)</span>
+            <span id="timeline-max-label">03:32</span>
+          </div>
+          <div id="timeline-track" class="relative h-10 bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden cursor-pointer select-none touch-none">
+            <!-- Area klip terpilih -->
+            <div id="timeline-selection" class="absolute top-0 bottom-0 bg-indigo-500/25 border-x-2 border-indigo-400 transition-all duration-75" style="left: 5%; width: 15%;">
+              <div class="w-full h-full flex items-center justify-center">
+                <span class="text-[10px] font-mono font-bold text-indigo-200 bg-indigo-600/80 px-1.5 py-0.5 rounded">9:16</span>
+              </div>
+            </div>
+            <!-- Jarum Playhead -->
+            <div id="timeline-playhead" class="absolute top-0 bottom-0 w-0.5 bg-amber-400 shadow-[0_0_8px_#fbbf24] pointer-events-none" style="left: 5%;"></div>
+          </div>
+          <p class="text-[11px] text-zinc-500">Klik atau geser pada timeline di atas untuk memindahkan titik awal klip dengan cepat.</p>
+        </div>
+      </section>
+
+      <!-- LANGKAH 3: Framing 9:16 & Hook Teks Viral -->
+      <section class="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-6 h-6 rounded-lg bg-indigo-500/20 text-indigo-400 font-bold text-xs flex items-center justify-center border border-indigo-500/30">3</span>
+            <h2 class="font-bold text-sm sm:text-base text-white">Framing Vertikal 9:16 & Teks Hook</h2>
+          </div>
+          <button type="button" onclick="saveCurrentClipToQueue()" class="px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-bold text-indigo-300 border border-indigo-500/30 transition">
+            + Simpan ke Antrean Klip
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Mode Rasio & Posisi Subjek -->
+          <div class="space-y-3 bg-zinc-950 p-3.5 rounded-xl border border-zinc-800">
+            <label class="block text-xs font-semibold text-zinc-300">Mode Tampilan 9:16</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" id="mode-fill-btn" onclick="setFramingMode('fill')" class="py-2 px-3 rounded-xl text-xs font-bold bg-indigo-600 text-white transition">
+                Full Crop 9:16
+              </button>
+              <button type="button" id="mode-fit-btn" onclick="setFramingMode('fit')" class="py-2 px-3 rounded-xl text-xs font-bold bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800 transition">
+                Fit + Blur BG
+              </button>
+            </div>
+
+            <div class="pt-1">
+              <div class="flex items-center justify-between text-xs mb-1.5">
+                <span class="text-zinc-400">Geser Fokus Subjek (Kiri/Kanan)</span>
+                <span id="pan-value-label" class="font-mono text-indigo-400 font-bold">0%</span>
+              </div>
+              <input type="range" id="pan-x-slider" min="-100" max="100" value="0" oninput="updatePanX(this.value)" class="w-full">
+              <div class="flex justify-between text-[11px] text-zinc-500 mt-1">
+                <button type="button" onclick="updatePanX(-65)" class="hover:text-zinc-300">Kiri</button>
+                <button type="button" onclick="updatePanX(0)" class="hover:text-zinc-300">Tengah</button>
+                <button type="button" onclick="updatePanX(65)" class="hover:text-zinc-300">Kanan</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Teks Judul Hook & Safe Zone -->
+          <div class="space-y-3 bg-zinc-950 p-3.5 rounded-xl border border-zinc-800">
+            <div>
+              <label class="block text-xs font-semibold text-zinc-300 mb-1.5">Teks Hook Atas (Opsional)</label>
+              <input
+                type="text"
+                id="hook-text-input"
+                maxlength="48"
+                placeholder="Contoh: RAHASIA SUKSES DI USIA MUDA!"
+                oninput="updateHookText(this.value)"
+                class="w-full bg-zinc-900 border border-zinc-700 focus:border-indigo-500 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 outline-none"
+              >
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+              <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="safe-zone-toggle" onchange="toggleSafeZone(this.checked)" class="w-4 h-4 rounded accent-indigo-500">
+                <span class="text-xs text-zinc-300">Panduan Safe-Zone TikTok/Reels</span>
               </label>
             </div>
-            <div class="flex flex-col sm:flex-row gap-2">
-              <input 
-                type="text" 
-                id="hook-text-input" 
-                placeholder="Ketik judul menarik di atas video (contoh: Momen Paling Epik 🔥)" 
-                oninput="updateHookOverlay(this.value)"
-                class="flex-1 px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 focus:border-indigo-500 rounded-xl text-xs sm:text-sm text-white placeholder-zinc-500 outline-none"
-              />
-              <select id="hook-style-select" onchange="updateHookStyle(this.value)" class="px-3 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs font-semibold text-zinc-200 outline-none">
-                <option value="viral-box">Gaya: Viral Kuning/Putih</option>
-                <option value="dark-pill">Gaya: Kapsul Gelap Elegan</option>
-                <option value="neon-glow">Gaya: Neon Gradient</option>
-              </select>
+          </div>
+        </div>
+
+        <!-- Daftar Antrean Klip Tersimpan -->
+        <div id="clip-queue-wrapper" class="hidden pt-2 border-t border-zinc-800">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-zinc-300">Antrean Klip Tersimpan (<span id="queue-count">0</span>)</span>
+            <button type="button" onclick="clearClipQueue()" class="text-[11px] text-rose-400 hover:underline">Hapus Semua</button>
+          </div>
+          <div id="clip-queue-list" class="flex flex-wrap gap-2"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- KOLOM KANAN: Pratinjau Langsung 9:16 & Kontrol Playback (5 Kolom) -->
+    <div class="lg:col-span-5 flex flex-col items-center space-y-4 lg:sticky lg:top-22">
+
+      <!-- Bingkai Ponsel 9:16 -->
+      <div class="w-full max-w-[330px] bg-zinc-900 border border-zinc-800 rounded-[2.2rem] p-3 shadow-2xl shadow-black/70">
+        <div id="phone-preview-stage" class="relative w-full aspect-[9/16] bg-black rounded-[1.6rem] overflow-hidden select-none">
+
+          <!-- Lapisan Background Blur (Aktif pada mode Fit + Blur) -->
+          <div id="blur-backdrop" class="hidden absolute inset-0 bg-cover bg-center blur-2xl scale-125 opacity-60 pointer-events-none"></div>
+
+          <!-- Wrapper Video YouTube IFrame (Dipotong presisi ke 9:16) -->
+          <div id="yt-crop-container" class="absolute inset-0 flex items-center justify-center overflow-hidden">
+            <div id="yt-player-wrapper" class="h-full aspect-video shrink-0 transition-transform duration-150" style="transform: translateX(0%);">
+              <div id="yt-player" class="w-full h-full pointer-events-none"></div>
             </div>
           </div>
-        </section>
 
-        <!-- ANTREAN KLIP TERSIMPAN -->
-        <section class="bg-zinc-900/50 border border-zinc-800/80 rounded-2xl p-4 sm:p-5">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="font-bold text-sm text-zinc-200 flex items-center gap-2">
-              <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-              Daftar Klip 9:16 Tersimpan
-            </h3>
-            <span class="text-xs text-zinc-500">Klik klip untuk pratinjau cepat</span>
-          </div>
+          <!-- Video Lokal Player (Jika user mengunggah file MP4 lokal) -->
+          <video id="local-video-player" class="hidden absolute inset-0 w-full h-full object-cover" playsinline></video>
 
-          <div id="saved-clips-container" class="space-y-2">
-            <div class="text-center py-6 border border-dashed border-zinc-800 rounded-xl text-xs text-zinc-500">
-              Belum ada klip disimpan. Atur menit/detik potongan lalu klik <strong class="text-zinc-300">+ Simpan Klip</strong>.
-            </div>
-          </div>
-        </section>
-      </div>
-
-      <!-- ==================== KOLOM KANAN: LIVE PREVIEW 9:16 & EXPORT (5 KOLOM) ==================== -->
-      <div class="lg:col-span-5 lg:sticky lg:top-22 space-y-4">
-        <div class="bg-zinc-900/80 border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col items-center">
-          
-          <!-- Header Preview -->
-          <div class="w-full flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span class="text-xs font-bold uppercase tracking-wider text-zinc-300">Pratinjau Live 9:16</span>
-            </div>
-            <span id="preview-loop-badge" class="text-[11px] font-mono bg-zinc-800 text-indigo-300 px-2.5 py-1 rounded-lg border border-zinc-700/70">
-              Loop: 00:15 - 00:35
+          <!-- Overlay Hook Teks Atas -->
+          <div id="hook-banner-overlay" class="hidden absolute top-11 left-4 right-4 z-20 pointer-events-none text-center">
+            <span id="hook-banner-text" class="inline-block px-3.5 py-1.5 rounded-xl bg-amber-400 text-zinc-950 font-extrabold text-xs uppercase tracking-wide shadow-lg">
+              HOOK VIRAL
             </span>
           </div>
 
-          <!-- BINGKAI SMARTPHONE VERTIKAL 9:16 -->
-          <div id="phone-preview-stage" class="relative w-full max-w-[300px] sm:max-w-[320px] aspect-[9/16] bg-black rounded-[2rem] border-[5px] border-zinc-800 shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden select-none">
-            
-            <!-- Progress Bar Klip di Bagian Paling Atas -->
-            <div class="absolute top-2.5 inset-x-3 z-30 h-1 bg-white/25 rounded-full overflow-hidden">
-              <div id="clip-progress-bar" class="h-full bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 w-0 transition-all duration-100"></div>
+          <!-- Overlay Safe Zone TikTok / Reels / Shorts -->
+          <div id="safe-zone-overlay" class="hidden absolute inset-0 z-20 pointer-events-none border-2 border-dashed border-cyan-400/50">
+            <div class="absolute top-3 left-3 px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 text-[10px] font-mono">SAFE ZONE 9:16</div>
+            <!-- Simulasi tombol interaksi kanan -->
+            <div class="absolute right-2.5 bottom-24 flex flex-col gap-3 items-center opacity-60">
+              <div class="w-8 h-8 rounded-full bg-white/30"></div>
+              <div class="w-8 h-8 rounded-full bg-white/30"></div>
+              <div class="w-8 h-8 rounded-full bg-white/30"></div>
             </div>
-
-            <!-- Background Blur Layer (Aktif saat mode 'Fit + Blur BG') -->
-            <div id="blur-backdrop" class="hidden absolute inset-0 z-0 overflow-hidden pointer-events-none">
-              <img id="blur-backdrop-img" src="https://img.youtube.com/vi/aqz-KE-bpKQ/hqdefault.jpg" alt="Backdrop" class="w-full h-full object-cover scale-150 blur-2xl opacity-55" />
-            </div>
-
-            <!-- WRAPPER VIDEO 9:16 CROP ENGINE -->
-            <div id="video-crop-wrapper" class="absolute inset-0 z-10 flex items-center justify-center overflow-hidden">
-              <!-- Inner 16:9 Container yang di-scale otomatis agar tinggi 100% tanpa black bar -->
-              <div id="player-aspect-box" class="relative h-full aspect-video shrink-0 transition-transform duration-75" style="transform: translateX(0%);">
-                <!-- Target YouTube IFrame API -->
-                <div id="yt-player-mount" class="w-full h-full"></div>
-                
-                <!-- Target Local Video File (Tersembunyi jika mode YouTube aktif) -->
-                <video id="local-video-player" class="hidden w-full h-full object-cover" playsinline></video>
-              </div>
-            </div>
-
-            <!-- Overlay Judul Hook Viral -->
-            <div id="hook-overlay-container" class="hidden absolute top-10 inset-x-4 z-20 pointer-events-none flex justify-center text-center">
-              <div id="hook-overlay-badge" class="px-3.5 py-2 rounded-xl bg-amber-400 text-zinc-950 font-extrabold text-sm uppercase tracking-tight shadow-xl leading-snug max-w-[92%]">
-                Momen Paling Epik 🔥
-              </div>
-            </div>
-
-            <!-- Panduan Safe-Zone UI TikTok / Reels / Shorts (Opsional) -->
-            <div id="safezone-overlay" class="hidden absolute inset-0 z-25 pointer-events-none">
-              <!-- Ikon Samping Kanan Simulasi -->
-              <div class="absolute right-2.5 bottom-20 flex flex-col items-center gap-3 opacity-60">
-                <div class="w-8 h-8 rounded-full bg-white/30 backdrop-blur-sm"></div>
-                <div class="w-7 h-7 rounded-full bg-white/30 backdrop-blur-sm"></div>
-                <div class="w-7 h-7 rounded-full bg-white/30 backdrop-blur-sm"></div>
-                <div class="w-7 h-7 rounded-full bg-white/30 backdrop-blur-sm"></div>
-              </div>
-              <!-- Area Caption Bawah Simulasi -->
-              <div class="absolute left-3 right-14 bottom-5 space-y-1.5 opacity-60">
-                <div class="w-24 h-2.5 rounded bg-white/40"></div>
-                <div class="w-40 h-2 rounded bg-white/30"></div>
-                <div class="w-32 h-2 rounded bg-white/30"></div>
-              </div>
-              <div class="absolute inset-x-2 bottom-2 border border-dashed border-amber-400/60 rounded-xl h-28 flex items-end justify-center pb-1">
-                <span class="text-[9px] font-mono text-amber-300 bg-black/70 px-1.5 rounded">Area Tombol UI Shorts/Reels</span>
-              </div>
-            </div>
-
-            <!-- Watermark Kecil Rasio -->
-            <div class="absolute bottom-3 right-3 z-20 pointer-events-none px-2 py-0.5 rounded-md bg-black/50 backdrop-blur-sm text-[10px] font-mono text-white/70">
-              9:16 HD
+            <!-- Simulasi caption bawah -->
+            <div class="absolute left-3 right-14 bottom-5 space-y-1.5 opacity-60">
+              <div class="h-2.5 w-24 bg-white/40 rounded"></div>
+              <div class="h-2 w-40 bg-white/30 rounded"></div>
             </div>
           </div>
 
-          <!-- KONTROL PEMUTAR KLIP -->
-          <div class="w-full max-w-[320px] mt-4 bg-zinc-950 border border-zinc-800 rounded-2xl p-2.5 flex items-center justify-between gap-2">
-            <div class="flex items-center gap-1.5">
-              <!-- Play / Pause -->
-              <button onclick="togglePlayPause()" id="play-pause-btn" class="w-10 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center transition active:scale-95" title="Putar / Jeda Klip">
-                <svg id="icon-play" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                <svg id="icon-pause" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-              </button>
-
-              <!-- Ulangi dari Awal Potongan -->
-              <button onclick="restartClipSegment()" class="w-10 h-10 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 flex items-center justify-center transition active:scale-95" title="Ulangi dari Awal Potongan">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-              </button>
-
-              <!-- Mute / Unmute -->
-              <button onclick="toggleMute()" id="mute-btn" class="w-10 h-10 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 flex items-center justify-center transition active:scale-95" title="Suara">
-                <svg id="icon-unmuted" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                </svg>
-                <svg id="icon-muted" class="w-4 h-4 hidden text-red-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
-                </svg>
-              </button>
-            </div>
-
-            <!-- Waktu Klip Berjalan -->
-            <div class="text-right pr-1.5">
-              <div id="clip-live-timer" class="font-mono text-xs font-bold text-white">00:00 / 00:20</div>
-              <div id="absolute-video-timer" class="font-mono text-[10px] text-zinc-500">Video: 00:15</div>
-            </div>
+          <!-- Badge Status Atas -->
+          <div class="absolute top-3 left-3 right-3 z-20 flex items-center justify-between pointer-events-none">
+            <span class="px-2.5 py-1 rounded-full bg-black/65 backdrop-blur-md text-[10px] font-mono font-bold text-white border border-white/10">
+              9:16 VERTICAL
+            </span>
+            <span id="live-timer-badge" class="px-2.5 py-1 rounded-full bg-indigo-600/90 backdrop-blur-md text-[10px] font-mono font-bold text-white">
+              00:10 / 00:30
+            </span>
           </div>
 
-          <!-- TOMBOL UTAMA EXPORT & DOWNLOAD 9:16 -->
-          <div class="w-full max-w-[320px] mt-4 space-y-2">
-            <button onclick="openExportModal()" class="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:via-purple-500 hover:to-pink-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/25 flex items-center justify-center gap-2.5 transition active:scale-[0.98]">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              <span>Render & Unduh Klip 9:16</span>
-            </button>
-          </div>
-
+          <!-- Klik layar ponsel untuk Play / Pause -->
+          <button type="button" onclick="togglePlayPause()" aria-label="Putar atau Jeda Klip" class="absolute inset-0 z-10 w-full h-full bg-transparent cursor-pointer"></button>
         </div>
+      </div>
+
+      <!-- Kontrol Pemutaran Klip -->
+      <div class="w-full max-w-[330px] bg-zinc-900 border border-zinc-800 rounded-2xl p-3 flex items-center justify-between gap-2">
+        <button type="button" onclick="togglePlayPause()" id="play-pause-btn" class="flex-1 py-2.5 px-4 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-bold text-white flex items-center justify-center gap-2 transition">
+          <svg id="icon-play" class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+          <span id="play-pause-label">Putar Klip</span>
+        </button>
+
+        <button type="button" onclick="replayClipFromStart()" title="Ulangi dari Titik Awal" class="p-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </button>
+
+        <button type="button" onclick="toggleMute()" id="mute-btn" title="Suara" class="p-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition">
+          <svg id="icon-unmuted" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+          </svg>
+          <svg id="icon-muted" class="w-4 h-4 hidden text-rose-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+          </svg>
+        </button>
       </div>
     </div>
   </main>
 
-  <!-- ==================== MODAL EXPORT & RENDER VIDEO 9:16 ==================== -->
-  <div id="export-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="bg-zinc-900 border border-zinc-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-5 relative animate-[fadeIn_0.2s_ease]">
-      
+  <!-- MODAL EXPORT .MP4 (H.264) -->
+  <div id="export-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-zinc-900 border border-zinc-800 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-5">
+
       <!-- Header Modal -->
       <div class="flex items-start justify-between gap-4">
         <div>
           <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 mb-1.5">
-            Siap Export • Rasio 9:16 (1080×1920)
+            Siap Export • Format .MP4 (H.264) • Rasio 9:16
           </span>
-          <h3 class="text-lg font-extrabold text-white">Export Klip Vertikal 9:16</h3>
+          <h3 class="text-lg font-extrabold text-white">Unduh Klip Vertikal 9:16 (.MP4)</h3>
         </div>
-        <button onclick="closeExportModal()" class="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition">
+        <button type="button" onclick="closeExportModal()" class="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
 
-      <!-- Ringkasan Detail Potongan -->
-      <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 grid grid-cols-3 gap-3 text-center">
+      <!-- Ringkasan Parameter Klip -->
+      <div class="grid grid-cols-3 gap-2.5 bg-zinc-950 p-3.5 rounded-2xl border border-zinc-800 text-center">
         <div>
-          <span class="text-[11px] text-zinc-500 block">Mulai</span>
-          <span id="export-summary-start" class="font-mono font-bold text-sm text-indigo-400">00:15</span>
-        </div>
-        <div class="border-x border-zinc-800">
-          <span class="text-[11px] text-zinc-500 block">Akhir</span>
-          <span id="export-summary-end" class="font-mono font-bold text-sm text-pink-400">00:35</span>
+          <div class="text-[11px] text-zinc-500">Mulai</div>
+          <div id="modal-start-time" class="font-mono font-bold text-sm text-emerald-400">00:10</div>
         </div>
         <div>
-          <span class="text-[11px] text-zinc-500 block">Durasi Klip</span>
-          <span id="export-summary-dur" class="font-mono font-bold text-sm text-emerald-400">20 Detik</span>
+          <div class="text-[11px] text-zinc-500">Selesai</div>
+          <div id="modal-end-time" class="font-mono font-bold text-sm text-rose-400">00:30</div>
+        </div>
+        <div>
+          <div class="text-[11px] text-zinc-500">Durasi & Output</div>
+          <div id="modal-duration-time" class="font-mono font-bold text-sm text-indigo-400">20d (.MP4)</div>
         </div>
       </div>
 
-      <!-- Progress Bar Render (Muncul saat merekam) -->
-      <div id="render-progress-box" class="hidden bg-zinc-950 border border-indigo-500/40 rounded-2xl p-4 space-y-2.5">
-        <div class="flex items-center justify-between text-xs">
-          <span class="flex items-center gap-2 font-bold text-white">
-            <span class="relative w-2.5 h-2.5 rounded-full bg-red-500 rec-pulse"></span>
-            <span id="render-status-text">Merekam & memotong video 9:16...</span>
-          </span>
-          <span id="render-percent-text" class="font-mono font-bold text-indigo-400">0%</span>
+      <!-- Progress Bar Render -->
+      <div id="render-progress-box" class="hidden bg-zinc-950 border border-indigo-500/30 rounded-2xl p-4 space-y-2">
+        <div class="flex items-center justify-between text-xs font-semibold">
+          <span id="render-status-text" class="text-indigo-300">Menyiapkan encoder .MP4 (H.264)...</span>
+          <span id="render-percent-text" class="font-mono text-white">0%</span>
         </div>
         <div class="w-full h-2.5 bg-zinc-800 rounded-full overflow-hidden">
-          <div id="render-progress-fill" class="h-full bg-gradient-to-r from-indigo-500 to-pink-500 w-0 transition-all duration-150"></div>
+          <div id="render-progress-fill" class="h-full bg-gradient-to-r from-indigo-500 to-pink-500 transition-all duration-150" style="width: 0%;"></div>
         </div>
-        <p class="text-[11px] text-zinc-400">File video 9:16 akan otomatis terunduh setelah durasi klip selesai.</p>
       </div>
 
       <!-- Opsi Metode Export -->
       <div class="space-y-2.5">
-        <!-- Opsi 1: Render Video 9:16 Langsung -->
-        <button onclick="start9x16VideoRender()" id="btn-start-render" class="w-full p-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-left flex items-center justify-between gap-3 transition shadow-lg shadow-indigo-600/20">
+        <!-- Opsi 1: Render Video 9:16 Langsung ke .MP4 -->
+        <button type="button" onclick="start9x16VideoRender()" id="btn-start-render" class="w-full p-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-left flex items-center justify-between gap-3 transition shadow-lg shadow-indigo-600/20">
           <div>
             <div class="font-bold text-sm text-white flex items-center gap-2">
-              <span>1. Render & Unduh File Video 9:16 (.WebM)</span>
+              <span>1. Render & Unduh File Video 9:16 (.MP4)</span>
+              <span class="px-2 py-0.5 text-[10px] font-mono uppercase rounded bg-white/20 text-white">H.264</span>
             </div>
-            <p class="text-xs text-indigo-100/80 mt-0.5">Otomatis memotong area pratinjau 9:16 + audio sesuai durasi yang diatur.</p>
+            <p class="text-xs text-indigo-100/85 mt-0.5">Langsung memotong klip vertikal 9:16 sesuai menit & detik menjadi file .MP4 siap unggah.</p>
           </div>
           <svg class="w-6 h-6 text-white shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
           </svg>
         </button>
 
         <!-- Opsi 2: Salin Link Timestamp YouTube -->
-        <button onclick="copyTimestampShareLink()" class="w-full p-3.5 rounded-2xl bg-zinc-950 hover:bg-zinc-800/80 border border-zinc-800 text-left flex items-center justify-between gap-3 transition">
+        <button type="button" onclick="copyTimestampLink()" class="w-full p-3.5 rounded-2xl bg-zinc-950 hover:bg-zinc-800/80 border border-zinc-800 text-left flex items-center justify-between gap-3 transition">
           <div>
-            <div class="font-semibold text-xs sm:text-sm text-zinc-200">2. Salin Link Potongan Waktu YouTube</div>
-            <p class="text-[11px] text-zinc-400">Bagikan link langsung mulai dari menit & detik pilihanmu.</p>
+            <div class="font-bold text-xs sm:text-sm text-zinc-200">2. Salin Link YouTube dengan Timestamp Awal</div>
+            <p class="text-xs text-zinc-500 mt-0.5">Membagikan link langsung ke detik mulai klip yang sudah diatur.</p>
           </div>
-          <span class="px-2.5 py-1 rounded-lg bg-zinc-800 text-xs font-semibold text-zinc-300 shrink-0">Salin Link</span>
+          <svg class="w-5 h-5 text-zinc-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
         </button>
 
-        <!-- Opsi 3: Perintah CLI yt-dlp + FFmpeg Pro -->
+        <!-- Opsi 3: Perintah FFmpeg + yt-dlp Otomatis (Output .MP4) -->
         <div class="p-3.5 rounded-2xl bg-zinc-950 border border-zinc-800 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-zinc-300">3. Perintah FFmpeg / yt-dlp Otomatis (Pro)</span>
-            <button onclick="copyFfmpegCommand()" class="text-[11px] font-semibold text-indigo-400 hover:text-indigo-300">Salin Perintah</button>
+            <span class="text-xs font-bold text-zinc-300">3. Perintah CLI (yt-dlp + FFmpeg Lossless .MP4)</span>
+            <button type="button" onclick="copyFfmpegCommand()" class="text-[11px] font-bold text-indigo-400 hover:text-indigo-300">Salin Perintah</button>
           </div>
-          <pre id="ffmpeg-command-preview" class="text-[10px] font-mono text-emerald-400 bg-black/60 p-2.5 rounded-xl overflow-x-auto whitespace-pre-wrap break-all"></pre>
+          <pre id="ffmpeg-command-box" class="text-[11px] font-mono text-zinc-400 bg-zinc-900 p-2.5 rounded-xl overflow-x-auto whitespace-pre-wrap break-all"></pre>
         </div>
       </div>
 
     </div>
   </div>
 
-  <!-- ==================== TOAST NOTIFICATION CONTAINER ==================== -->
-  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
-
-  <!-- ==================== JAVASCRIPT APPLICATION LOGIC ==================== -->
+  <!-- Aplikasi Utama JavaScript -->
   <script>
     /**
-     * STATE GLOBAL APLIKASI KLIPKILAT 9:16
+     * =========================================================================
+     * 1. BUILT-IN PURE-JS ISO BMFF (.MP4) MUXER (ZERO EXTERNAL DEPENDENCIES)
+     * Mengemas frame H.264 (AVCC) dari WebCodecs VideoEncoder ke file .MP4 asli
+     * =========================================================================
+     */
+    class MiniMp4Muxer {
+      constructor({ width, height, timescale = 90000 }) {
+        this.width = width;
+        this.height = height;
+        this.timescale = timescale;
+        this.samples = [];
+        this.avcC = null;
+      }
+
+      addSample({ data, durationUs, isKey, avcC }) {
+        if (avcC && !this.avcC) {
+          this.avcC = new Uint8Array(avcC);
+        }
+        const bytes = data instanceof Uint8Array ? data : new Uint8Array(data);
+        const durationTicks = Math.max(1, Math.round((durationUs / 1_000_000) * this.timescale));
+        this.samples.push({
+          bytes,
+          durationTicks,
+          isKey: Boolean(isKey)
+        });
+      }
+
+      buildMp4Buffer() {
+        if (!this.samples.length || !this.avcC) {
+          throw new Error('Data frame H.264 atau konfigurasi avcC belum tersedia.');
+        }
+
+        const u32 = (val) => new Uint8Array([
+          (val >>> 24) & 0xff,
+          (val >>> 16) & 0xff,
+          (val >>> 8) & 0xff,
+          val & 0xff
+        ]);
+
+        const u16 = (val) => new Uint8Array([
+          (val >>> 8) & 0xff,
+          val & 0xff
+        ]);
+
+        const str = (s) => new Uint8Array([...s].map(c => c.charCodeAt(0)));
+
+        const concat = (...arrays) => {
+          const total = arrays.reduce((sum, a) => sum + a.byteLength, 0);
+          const out = new Uint8Array(total);
+          let offset = 0;
+          for (const arr of arrays) {
+            out.set(arr, offset);
+            offset += arr.byteLength;
+          }
+          return out;
+        };
+
+        const box = (type, ...payloads) => {
+          const body = concat(...payloads);
+          return concat(u32(8 + body.byteLength), str(type), body);
+        };
+
+        const fullBox = (type, version, flags, ...payloads) => {
+          const header = new Uint8Array([
+            version & 0xff,
+            (flags >>> 16) & 0xff,
+            (flags >>> 8) & 0xff,
+            flags & 0xff
+          ]);
+          return box(type, header, ...payloads);
+        };
+
+        // 1. ftyp box (32 bytes)
+        const ftyp = box(
+          'ftyp',
+          str('isom'),
+          u32(512),
+          str('isom'),
+          str('iso2'),
+          str('avc1'),
+          str('mp41')
+        );
+
+        // 2. Hitung ukuran mdat & offset setiap sample
+        const totalMediaBytes = this.samples.reduce((sum, s) => sum + s.bytes.byteLength, 0);
+        const mdatHeaderSize = 8;
+        const firstSampleOffset = ftyp.byteLength + mdatHeaderSize;
+
+        let runningOffset = firstSampleOffset;
+        const chunkOffsets = new Uint8Array(this.samples.length * 4);
+        const sampleSizes = new Uint8Array(this.samples.length * 4);
+        const syncSampleIndices = [];
+        const sttsEntries = [];
+        let totalDurationTicks = 0;
+
+        this.samples.forEach((sample, idx) => {
+          // stco (1 chunk = 1 sample agar presisi dan sederhana)
+          chunkOffsets.set(u32(runningOffset), idx * 4);
+          runningOffset += sample.bytes.byteLength;
+
+          // stsz
+          sampleSizes.set(u32(sample.bytes.byteLength), idx * 4);
+
+          // stss (1-based index untuk keyframe)
+          if (sample.isKey) {
+            syncSampleIndices.push(idx + 1);
+          }
+
+          // stts run-length encoding
+          const lastEntry = sttsEntries[sttsEntries.length - 1];
+          if (lastEntry && lastEntry.delta === sample.durationTicks) {
+            lastEntry.count += 1;
+          } else {
+            sttsEntries.push({ count: 1, delta: sample.durationTicks });
+          }
+
+          totalDurationTicks += sample.durationTicks;
+        });
+
+        // 3. Susun atom-atom moov
+        const matrix = concat(
+          u32(0x00010000), u32(0), u32(0),
+          u32(0), u32(0x00010000), u32(0),
+          u32(0), u32(0), u32(0x40000000)
+        );
+
+        const mvhd = fullBox(
+          'mvhd', 0, 0,
+          u32(0), // creation_time
+          u32(0), // modification_time
+          u32(this.timescale),
+          u32(totalDurationTicks),
+          u32(0x00010000), // rate 1.0
+          u16(0x0100),     // volume 1.0
+          new Uint8Array(10),
+          matrix,
+          new Uint8Array(24),
+          u32(2) // next_track_ID
+        );
+
+        const tkhd = fullBox(
+          'tkhd', 0, 0x000003, // track enabled + in movie
+          u32(0),
+          u32(0),
+          u32(1), // track_ID
+          u32(0),
+          u32(totalDurationTicks),
+          new Uint8Array(8),
+          u16(0),
+          u16(0),
+          u16(0),
+          u16(0),
+          matrix,
+          u32(this.width << 16),
+          u32(this.height << 16)
+        );
+
+        const mdhd = fullBox(
+          'mdhd', 0, 0,
+          u32(0),
+          u32(0),
+          u32(this.timescale),
+          u32(totalDurationTicks),
+          u16(0x55c4), // 'und'
+          u16(0)
+        );
+
+        const hdlr = fullBox(
+          'hdlr', 0, 0,
+          u32(0),
+          str('vide'),
+          new Uint8Array(12),
+          str('VideoHandler\0')
+        );
+
+        const vmhd = fullBox('vmhd', 0, 1, new Uint8Array(8));
+        const urlBox = fullBox('url ', 0, 1);
+        const dref = fullBox('dref', 0, 0, u32(1), urlBox);
+        const dinf = box('dinf', dref);
+
+        const avcCBox = box('avcC', this.avcC);
+        const avc1 = box(
+          'avc1',
+          new Uint8Array(6),
+          u16(1), // data_reference_index
+          new Uint8Array(16),
+          u16(this.width),
+          u16(this.height),
+          u32(0x00480000), // 72 dpi
+          u32(0x00480000), // 72 dpi
+          u32(0),
+          u16(1),
+          new Uint8Array(32),
+          u16(0x0018),
+          u16(0xffff),
+          avcCBox
+        );
+
+        const stsd = fullBox('stsd', 0, 0, u32(1), avc1);
+
+        const sttsBytes = new Uint8Array(sttsEntries.length * 8);
+        sttsEntries.forEach((entry, idx) => {
+          sttsBytes.set(u32(entry.count), idx * 8);
+          sttsBytes.set(u32(entry.delta), idx * 8 + 4);
+        });
+        const stts = fullBox('stts', 0, 0, u32(sttsEntries.length), sttsBytes);
+
+        const stssBytes = new Uint8Array(syncSampleIndices.length * 4);
+        syncSampleIndices.forEach((sampleNum, idx) => {
+          stssBytes.set(u32(sampleNum), idx * 4);
+        });
+        const stss = fullBox('stss', 0, 0, u32(syncSampleIndices.length), stssBytes);
+
+        const stsc = fullBox(
+          'stsc', 0, 0,
+          u32(1),
+          u32(1), // first_chunk
+          u32(1), // samples_per_chunk
+          u32(1)  // sample_description_index
+        );
+
+        const stsz = fullBox('stsz', 0, 0, u32(0), u32(this.samples.length), sampleSizes);
+        const stco = fullBox('stco', 0, 0, u32(this.samples.length), chunkOffsets);
+
+        const stbl = box('stbl', stsd, stts, stss, stsc, stsz, stco);
+        const minf = box('minf', vmhd, dinf, stbl);
+        const mdia = box('mdia', mdhd, hdlr, minf);
+        const trak = box('trak', tkhd, mdia);
+        const moov = box('moov', mvhd, trak);
+
+        // 4. Gabungkan ftyp + mdat + moov
+        const mdatHeader = concat(u32(mdatHeaderSize + totalMediaBytes), str('mdat'));
+        const finalFile = new Uint8Array(ftyp.byteLength + mdatHeader.byteLength + totalMediaBytes + moov.byteLength);
+
+        let writePos = 0;
+        finalFile.set(ftyp, writePos); writePos += ftyp.byteLength;
+        finalFile.set(mdatHeader, writePos); writePos += mdatHeader.byteLength;
+        for (const s of this.samples) {
+          finalFile.set(s.bytes, writePos);
+          writePos += s.bytes.byteLength;
+        }
+        finalFile.set(moov, writePos);
+
+        return finalFile.buffer;
+      }
+    }
+
+    /**
+     * =========================================================================
+     * 2. STATE GLOBAL APLIKASI KLIPKILAT 9:16
+     * =========================================================================
      */
     const state = {
       sourceType: 'youtube', // 'youtube' | 'local'
-      videoId: 'aqz-KE-bpKQ',
-      videoTitle: 'Big Buck Bunny 60fps 4K',
-      videoDuration: 634, // dalam detik (diperbarui otomatis saat video dimuat)
-      startTime: 15,      // detik mulai potongan
-      endTime: 35,        // detik akhir potongan (default 20 detik -> masuk rentang 15-30d)
-      lockRange15to30: true, // kunci otomatis durasi ideal 15-30 detik
-      cropMode: 'fill',   // 'fill' | 'blur'
-      panX: 0,            // -100 hingga +100
+      videoId: 'dQw4w9WgXcQ',
+      videoTitle: 'Rick Astley - Never Gonna Give You Up (Video Contoh)',
+      totalDuration: 212,
+      startTime: 10,
+      endTime: 30,
+      lock15to30: true,
+      framingMode: 'fill', // 'fill' | 'fit'
+      panX: 0,
       hookText: '',
-      hookStyle: 'viral-box',
+      safeZone: false,
       isPlaying: false,
       isMuted: false,
-      savedClips: [],
+      ytPlayer: null,
+      ytReady: false,
+      monitorTimer: null,
+      clipQueue: [],
       isRecording: false
     };
 
-    let ytPlayer = null;
-    let ytApiReady = false;
-    let playbackInterval = null;
-    let localVideoObjectUrl = null;
-
     /**
-     * 1. INISIALISASI YOUTUBE IFRAME API
+     * =========================================================================
+     * 3. YOUTUBE IFRAME API & PEMUATAN VIDEO
+     * =========================================================================
      */
-    function initYouTubeAPI() {
-      const tag = document.createElement('script');
-      tag.src = 'https://www.youtube.com/iframe_api';
-      const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-    }
-
-    // Callback global wajib dari YouTube IFrame API
-    window.onYouTubeIframeAPIReady = function () {
-      ytApiReady = true;
-      createYouTubePlayer(state.videoId);
-    };
-
-    function createYouTubePlayer(videoId) {
-      const mountEl = document.getElementById('yt-player-mount');
-      const localVideoEl = document.getElementById('local-video-player');
-
-      // Tampilkan YouTube player, sembunyikan local video
-      mountEl.classList.remove('hidden');
-      localVideoEl.classList.add('hidden');
-      localVideoEl.pause();
-      state.sourceType = 'youtube';
-
-      // Perbarui thumbnail blur background
-      document.getElementById('blur-backdrop-img').src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-
-      if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
-        ytPlayer.loadVideoById({
-          videoId: videoId,
-          startSeconds: state.startTime
-        });
-        fetchYouTubeMetadata(videoId);
+    function loadYouTubeIframeAPI() {
+      if (window.YT && window.YT.Player) {
+        initYouTubePlayer();
         return;
       }
+      if (!document.getElementById('yt-iframe-api-script')) {
+        const tag = document.createElement('script');
+        tag.id = 'yt-iframe-api-script';
+        tag.src = 'https://www.youtube.com/iframe_api';
+        tag.onerror = () => {
+          showToast('YouTube IFrame API tidak dapat dimuat. Anda tetap bisa memakai file MP4 lokal.', 'info');
+        };
+        document.head.appendChild(tag);
+      }
+    }
 
-      ytPlayer = new YT.Player('yt-player-mount', {
-        videoId: videoId,
+    window.onYouTubeIframeAPIReady = function () {
+      initYouTubePlayer();
+    };
+
+    function initYouTubePlayer() {
+      if (state.ytPlayer) return;
+      state.ytPlayer = new YT.Player('yt-player', {
+        videoId: state.videoId,
         playerVars: {
-          autoplay: 1,
+          autoplay: 0,
           controls: 0,
-          disablekb: 1,
-          fs: 0,
-          iv_load_policy: 3,
           modestbranding: 1,
           rel: 0,
           playsinline: 1,
-          start: Math.floor(state.startTime)
+          start: state.startTime
         },
         events: {
           onReady: onPlayerReady,
-          onStateChange: onPlayerStateChange,
-          onError: onPlayerError
+          onStateChange: onPlayerStateChange
         }
       });
-
-      fetchYouTubeMetadata(videoId);
     }
 
-    function onPlayerReady(event) {
-      const dur = event.target.getDuration();
-      if (dur && dur > 0) {
-        state.videoDuration = Math.floor(dur);
-        validateClipBounds();
+    function onPlayerReady() {
+      state.ytReady = true;
+      const dur = Math.floor(state.ytPlayer.getDuration() || 212);
+      if (dur > 0) {
+        state.totalDuration = dur;
+        clampClipTimes();
       }
-      event.target.seekTo(state.startTime, true);
-      event.target.playVideo();
-      state.isPlaying = true;
-      updatePlayPauseUI();
-      startPlaybackMonitor();
+      updateBackdropThumbnail();
       syncAllUI();
+      startPlaybackMonitor();
     }
 
     function onPlayerStateChange(event) {
       if (event.data === YT.PlayerState.PLAYING) {
         state.isPlaying = true;
-        const dur = ytPlayer.getDuration();
-        if (dur && dur > 0 && Math.abs(dur - state.videoDuration) > 2) {
-          state.videoDuration = Math.floor(dur);
+        const dur = Math.floor(state.ytPlayer.getDuration() || 0);
+        if (dur > 0 && dur !== state.totalDuration) {
+          state.totalDuration = dur;
           syncAllUI();
         }
       } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
         state.isPlaying = false;
       }
-      updatePlayPauseUI();
+      updatePlayPauseButtonUI();
     }
 
-    function onPlayerError(event) {
-      showToast('Video YouTube ini membatasi pemutaran embed. Silakan coba link lain atau Upload MP4 lokal.', 'error');
-    }
-
-    /**
-     * Ambil judul video YouTube via oEmbed (CORS-friendly)
-     */
-    async function fetchYouTubeMetadata(videoId) {
-      const badge = document.getElementById('video-meta-badge');
-      badge.textContent = 'Mengambil info video...';
-      try {
-        const res = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
-        const data = await res.json();
-        if (data && data.title) {
-          state.videoTitle = data.title;
-          badge.textContent = `📺 ${data.title}`;
-        } else {
-          state.videoTitle = `YouTube Video (${videoId})`;
-          badge.textContent = `📺 ID: ${videoId}`;
-        }
-      } catch (err) {
-        state.videoTitle = `YouTube Video (${videoId})`;
-        badge.textContent = `📺 ID: ${videoId}`;
-      }
-    }
-
-    /**
-     * 2. PARSING URL YOUTUBE & INPUT PENGGUNA
-     */
-    function extractYouTubeID(url) {
+    function extractYouTubeVideoId(url) {
       if (!url) return null;
       const trimmed = url.trim();
-      // Jika user langsung menempel 11 karakter Video ID
       if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
 
-      const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
-      const match = trimmed.match(regExp);
-      return match ? match[1] : null;
+      const patterns = [
+        /(?:youtube\.com\/watch\?v=|youtube\.com\/watch\?.+&v=)([a-zA-Z0-9_-]{11})/,
+        /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+        /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
+        /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+        /youtube\.com\/live\/([a-zA-Z0-9_-]{11})/
+      ];
+      for (const regex of patterns) {
+        const match = trimmed.match(regex);
+        if (match && match[1]) return match[1];
+      }
+      return null;
     }
 
-    function loadYouTubeFromInput() {
-      const inputEl = document.getElementById('youtube-url-input');
-      const extractedId = extractYouTubeID(inputEl.value);
+    async function handleYoutubeSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById('youtube-url-input').value;
+      const extractedId = extractYouTubeVideoId(input);
 
       if (!extractedId) {
-        showToast('Link YouTube tidak valid! Pastikan format URL benar.', 'error');
-        inputEl.focus();
+        showToast('Link YouTube tidak valid. Pastikan format URL YouTube benar.', 'error');
         return;
       }
 
-      state.videoId = extractedId;
-      // Set default otomatis potongan 15-35 detik (durasi 20 detik)
-      state.startTime = 15;
-      state.endTime = 35;
-
-      if (ytApiReady) {
-        createYouTubePlayer(extractedId);
-      } else {
-        showToast('Memuat pemutar YouTube...', 'info');
-      }
-
-      syncAllUI();
-      showToast('Video dimuat & otomatis dipotong ke rasio 9:16!', 'success');
+      switchToYouTubeMode(extractedId);
     }
 
-    function loadSampleVideo(url, startSec, endSec) {
-      document.getElementById('youtube-url-input').value = url;
-      const id = extractYouTubeID(url);
-      if (!id) return;
-      state.videoId = id;
-      state.startTime = startSec;
-      state.endTime = endSec;
-      if (ytApiReady) {
-        createYouTubePlayer(id);
-      }
-      syncAllUI();
-      showToast('Contoh video dimuat dengan format 9:16!', 'success');
-    }
+    async function switchToYouTubeMode(videoId) {
+      state.sourceType = 'youtube';
+      state.videoId = videoId;
+      state.startTime = 0;
+      state.endTime = 20;
 
-    async function pasteFromClipboard() {
+      const localVideo = document.getElementById('local-video-player');
+      localVideo.pause();
+      localVideo.classList.add('hidden');
+      document.getElementById('yt-crop-container').classList.remove('hidden');
+
+      updateBackdropThumbnail();
+      document.getElementById('active-video-title').textContent = `Memuat info video (${videoId})...`;
+
+      // Ambil judul video secara aman (validasi content-type agar tidak memicu SyntaxError JSON)
       try {
-        const text = await navigator.clipboard.readText();
-        if (text) {
-          document.getElementById('youtube-url-input').value = text;
-          loadYouTubeFromInput();
+        const res = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
+        const contentType = res.headers.get('content-type') || '';
+        if (res.ok && contentType.includes('application/json')) {
+          const data = await res.json();
+          state.videoTitle = data.title || `YouTube Video (${videoId})`;
+        } else {
+          state.videoTitle = `YouTube Video (${videoId})`;
         }
-      } catch (e) {
-        showToast('Tekan Ctrl+V / Tempel manual pada kolom URL.', 'info');
+      } catch (_) {
+        state.videoTitle = `YouTube Video (${videoId})`;
       }
+
+      if (state.ytReady && state.ytPlayer) {
+        state.ytPlayer.loadVideoById({ videoId, startSeconds: state.startTime });
+      } else {
+        loadYouTubeIframeAPI();
+      }
+
+      syncAllUI();
+      showToast('Video YouTube dimuat & otomatis diubah ke format 9:16!', 'success');
     }
 
-    /**
-     * Dukungan Upload Video Lokal (.MP4 / .WebM) untuk Render Offline Instan
-     */
+    function loadSampleVideo() {
+      const sampleUrl = 'https://www.youtube.com/watch?v=aqz-KE-bpKQ';
+      document.getElementById('youtube-url-input').value = sampleUrl;
+      switchToYouTubeMode('aqz-KE-bpKQ');
+    }
+
+    function clearUrlInput() {
+      const input = document.getElementById('youtube-url-input');
+      input.value = '';
+      input.focus();
+    }
+
     function handleLocalVideoUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
 
-      if (localVideoObjectUrl) {
-        URL.revokeObjectURL(localVideoObjectUrl);
-      }
-      localVideoObjectUrl = URL.createObjectURL(file);
-
-      const mountEl = document.getElementById('yt-player-mount');
-      const localVideoEl = document.getElementById('local-video-player');
-
-      if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
-        ytPlayer.pauseVideo();
-      }
-
-      mountEl.classList.add('hidden');
-      localVideoEl.classList.remove('hidden');
-      localVideoEl.src = localVideoObjectUrl;
+      const objectUrl = URL.createObjectURL(file);
       state.sourceType = 'local';
-      state.videoTitle = file.name.replace(/\.[^/.]+$/, '');
-      document.getElementById('video-meta-badge').textContent = `📁 Lokal: ${file.name}`;
+      state.videoTitle = file.name;
 
-      localVideoEl.onloadedmetadata = () => {
-        state.videoDuration = Math.max(15, Math.floor(localVideoEl.duration));
+      if (state.ytReady && state.ytPlayer && state.ytPlayer.pauseVideo) {
+        state.ytPlayer.pauseVideo();
+      }
+
+      document.getElementById('yt-crop-container').classList.add('hidden');
+      const localVideo = document.getElementById('local-video-player');
+      localVideo.src = objectUrl;
+      localVideo.classList.remove('hidden');
+
+      localVideo.onloadedmetadata = () => {
+        state.totalDuration = Math.max(15, Math.floor(localVideo.duration));
         state.startTime = 0;
-        state.endTime = Math.min(state.videoDuration, 20);
-        localVideoEl.currentTime = state.startTime;
-        localVideoEl.play();
+        state.endTime = Math.min(20, state.totalDuration);
+        localVideo.currentTime = state.startTime;
+        localVideo.play().catch(() => {});
         state.isPlaying = true;
-        updatePlayPauseUI();
-        startPlaybackMonitor();
         syncAllUI();
-        showToast('Video lokal siap dipotong ke 9:16!', 'success');
+        startPlaybackMonitor();
+        showToast('Video lokal siap dipotong ke 9:16 & diunduh sebagai .MP4!', 'success');
       };
     }
 
+    function updateBackdropThumbnail() {
+      const backdrop = document.getElementById('blur-backdrop');
+      backdrop.style.backgroundImage = `url('https://i.ytimg.com/vi/${state.videoId}/hqdefault.jpg')`;
+    }
+
     /**
-     * 3. KONTROL PEMOTONGAN WAKTU (MENIT & DETIK) + PENJAGA DURASI 15-30 DETIK
+     * =========================================================================
+     * 4. LOGIKA PEMOTONGAN MENIT & DETIK (15 - 30 DETIK)
+     * =========================================================================
      */
-    function validateClipBounds() {
-      const maxDur = Math.max(15, state.videoDuration);
-      state.startTime = Math.max(0, Math.min(state.startTime, maxDur - 5));
-      state.endTime = Math.max(state.startTime + 3, Math.min(state.endTime, maxDur));
+    function clampClipTimes(changedBound = 'end') {
+      const maxDur = Math.max(15, state.totalDuration);
+      state.startTime = Math.max(0, Math.min(state.startTime, maxDur - 1));
+      state.endTime = Math.max(state.startTime + 1, Math.min(state.endTime, maxDur));
 
-      if (state.lockRange15to30) {
-        let dur = state.endTime - state.startTime;
-        if (dur < 15) {
-          state.endTime = Math.min(maxDur, state.startTime + 15);
-          if (state.endTime - state.startTime < 15) {
-            state.startTime = Math.max(0, state.endTime - 15);
+      if (state.lock15to30) {
+        let clipLen = state.endTime - state.startTime;
+        if (clipLen < 15) {
+          if (changedBound === 'start') {
+            state.endTime = Math.min(maxDur, state.startTime + 15);
+            if (state.endTime - state.startTime < 15) {
+              state.startTime = Math.max(0, state.endTime - 15);
+            }
+          } else {
+            state.endTime = Math.min(maxDur, state.startTime + 15);
           }
-        } else if (dur > 30) {
-          state.endTime = state.startTime + 30;
+        } else if (clipLen > 30) {
+          if (changedBound === 'start') {
+            state.endTime = Math.min(maxDur, state.startTime + 30);
+          } else {
+            state.startTime = Math.max(0, state.endTime - 30);
+          }
         }
       }
     }
 
-    function onTimeInputChange() {
-      const sMin = Math.max(0, parseInt(document.getElementById('start-min').value) || 0);
-      const sSec = Math.max(0, Math.min(59, parseInt(document.getElementById('start-sec').value) || 0));
-      const eMin = Math.max(0, parseInt(document.getElementById('end-min').value) || 0);
-      const eSec = Math.max(0, Math.min(59, parseInt(document.getElementById('end-sec').value) || 0));
+    function onManualTimeInput(bound) {
+      const startMin = Math.max(0, parseInt(document.getElementById('start-min').value, 10) || 0);
+      const startSec = Math.max(0, Math.min(59, parseInt(document.getElementById('start-sec').value, 10) || 0));
+      const endMin = Math.max(0, parseInt(document.getElementById('end-min').value, 10) || 0);
+      const endSec = Math.max(0, Math.min(59, parseInt(document.getElementById('end-sec').value, 10) || 0));
 
-      const prevStart = state.startTime;
-      const newStart = sMin * 60 + sSec;
-      const newEnd = eMin * 60 + eSec;
+      state.startTime = startMin * 60 + startSec;
+      state.endTime = endMin * 60 + endSec;
 
-      if (newStart !== prevStart) {
-        state.startTime = newStart;
-        if (state.lockRange15to30) {
-          const currentDur = Math.min(30, Math.max(15, newEnd - prevStart));
-          state.endTime = Math.min(state.videoDuration, state.startTime + currentDur);
-        } else {
-          state.endTime = Math.max(state.startTime + 3, newEnd);
-        }
+      clampClipTimes(bound);
+      seekPlayerTo(state.startTime);
+      syncAllUI();
+    }
+
+    function nudgeTime(bound, deltaSeconds) {
+      if (bound === 'start') {
+        state.startTime += deltaSeconds;
       } else {
-        state.endTime = newEnd;
-        if (state.lockRange15to30) {
-          const diff = state.endTime - state.startTime;
-          if (diff < 15) state.startTime = Math.max(0, state.endTime - 15);
-          if (diff > 30) state.startTime = state.endTime - 30;
-        }
+        state.endTime += deltaSeconds;
       }
-
-      validateClipBounds();
+      clampClipTimes(bound);
       seekPlayerTo(state.startTime);
-      syncAllUI();
-    }
-
-    function nudgeStart(deltaSeconds) {
-      state.startTime = Math.max(0, state.startTime + deltaSeconds);
-      if (state.lockRange15to30) {
-        const dur = state.endTime - state.startTime;
-        if (dur < 15) state.endTime = Math.min(state.videoDuration, state.startTime + 15);
-        if (dur > 30) state.endTime = state.startTime + 30;
-      } else if (state.startTime >= state.endTime - 2) {
-        state.endTime = Math.min(state.videoDuration, state.startTime + 5);
-      }
-      validateClipBounds();
-      seekPlayerTo(state.startTime);
-      syncAllUI();
-    }
-
-    function nudgeEnd(deltaSeconds) {
-      state.endTime = Math.min(state.videoDuration, state.endTime + deltaSeconds);
-      if (state.lockRange15to30) {
-        const dur = state.endTime - state.startTime;
-        if (dur < 15) state.startTime = Math.max(0, state.endTime - 15);
-        if (dur > 30) state.startTime = state.endTime - 30;
-      } else if (state.endTime <= state.startTime + 2) {
-        state.startTime = Math.max(0, state.endTime - 5);
-      }
-      validateClipBounds();
-      seekPlayerTo(Math.max(state.startTime, state.endTime - 3));
       syncAllUI();
     }
 
     function applyDurationPreset(seconds) {
-      state.endTime = Math.min(state.videoDuration, state.startTime + seconds);
+      state.endTime = Math.min(state.totalDuration, state.startTime + seconds);
       if (state.endTime - state.startTime < seconds) {
         state.startTime = Math.max(0, state.endTime - seconds);
       }
-      validateClipBounds();
+      clampClipTimes('start');
       seekPlayerTo(state.startTime);
       syncAllUI();
 
-      // Highlight tombol preset aktif
       document.querySelectorAll('.preset-btn').forEach(btn => {
-        if (parseInt(btn.dataset.dur) === seconds) {
-          btn.classList.remove('bg-zinc-800', 'text-zinc-200');
-          btn.classList.add('bg-indigo-600', 'text-white');
-        } else {
-          btn.classList.add('bg-zinc-800', 'text-zinc-200');
-          btn.classList.remove('bg-indigo-600', 'text-white');
-        }
+        const isActive = parseInt(btn.dataset.sec, 10) === seconds;
+        btn.className = isActive
+          ? 'preset-btn px-2.5 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white transition'
+          : 'preset-btn px-2.5 py-1.5 rounded-lg text-xs font-bold bg-zinc-800 hover:bg-indigo-600 text-zinc-200 hover:text-white transition';
       });
-      showToast(`Durasi klip diatur ke ${seconds} detik.`, 'info');
     }
 
-    function toggleDurationLock() {
-      state.lockRange15to30 = document.getElementById('lock-duration-range').checked;
-      if (state.lockRange15to30) {
-        validateClipBounds();
-        syncAllUI();
-        showToast('Kunci durasi 15–30 detik diaktifkan.', 'success');
-      } else {
-        showToast('Mode durasi bebas aktif.', 'info');
-      }
+    function handleLockToggle() {
+      state.lock15to30 = document.getElementById('lock-15-30-toggle').checked;
+      clampClipTimes('start');
+      syncAllUI();
     }
 
     function setStartFromCurrentPlayhead() {
-      const cur = Math.floor(getCurrentPlayerTime());
-      state.startTime = cur;
-      if (state.lockRange15to30) {
-        state.endTime = Math.min(state.videoDuration, state.startTime + 20);
-      }
-      validateClipBounds();
+      const current = Math.floor(getCurrentPlaybackTime());
+      const currentLen = Math.max(15, Math.min(30, state.endTime - state.startTime));
+      state.startTime = current;
+      state.endTime = Math.min(state.totalDuration, current + currentLen);
+      clampClipTimes('start');
       syncAllUI();
-      showToast(`Titik mulai diatur ke ${formatTime(state.startTime)}`, 'success');
+      showToast(`Titik awal diatur ke ${formatTime(state.startTime)}`, 'info');
     }
 
     function setEndFromCurrentPlayhead() {
-      const cur = Math.floor(getCurrentPlayerTime());
-      state.endTime = Math.max(state.startTime + 5, cur);
-      if (state.lockRange15to30) {
-        const diff = state.endTime - state.startTime;
-        if (diff < 15) state.startTime = Math.max(0, state.endTime - 15);
-        if (diff > 30) state.startTime = state.endTime - 30;
-      }
-      validateClipBounds();
+      const current = Math.floor(getCurrentPlaybackTime());
+      state.endTime = current;
+      clampClipTimes('end');
       syncAllUI();
-      showToast(`Titik akhir diatur ke ${formatTime(state.endTime)}`, 'success');
+      showToast(`Titik akhir diatur ke ${formatTime(state.endTime)}`, 'info');
     }
 
     /**
-     * 4. VISUAL TIMELINE SCRUBBER (MOUSE & TOUCH DRAG)
+     * =========================================================================
+     * 5. TIMELINE SCRUBBER INTERAKTIF (MOUSE & TOUCH)
+     * =========================================================================
      */
-    function initTimelineInteractions() {
+    (function setupTimelineInteraction() {
       const track = document.getElementById('timeline-track');
-      const selection = document.getElementById('timeline-selection');
-      const handleStart = document.getElementById('handle-start');
-      const handleEnd = document.getElementById('handle-end');
+      let isDragging = false;
 
-      let dragMode = null; // 'start' | 'end' | 'window'
-      let dragStartX = 0;
-      let initialStart = 0;
-      let initialEnd = 0;
-
-      function getPointerX(e) {
-        return e.touches ? e.touches[0].clientX : e.clientX;
-      }
-
-      function onDragStart(e, mode) {
-        e.stopPropagation();
-        dragMode = mode;
-        dragStartX = getPointerX(e);
-        initialStart = state.startTime;
-        initialEnd = state.endTime;
-      }
-
-      handleStart.addEventListener('mousedown', (e) => onDragStart(e, 'start'));
-      handleStart.addEventListener('touchstart', (e) => onDragStart(e, 'start'), { passive: true });
-
-      handleEnd.addEventListener('mousedown', (e) => onDragStart(e, 'end'));
-      handleEnd.addEventListener('touchstart', (e) => onDragStart(e, 'end'), { passive: true });
-
-      selection.addEventListener('mousedown', (e) => {
-        if (e.target === handleStart || e.target === handleEnd) return;
-        onDragStart(e, 'window');
-      });
-      selection.addEventListener('touchstart', (e) => {
-        if (e.target === handleStart || e.target === handleEnd) return;
-        onDragStart(e, 'window');
-      }, { passive: true });
-
-      // Klik langsung pada track untuk melompatkan klip ke titik tersebut
-      track.addEventListener('mousedown', (e) => {
-        if (dragMode) return;
+      function updateFromClientX(clientX) {
         const rect = track.getBoundingClientRect();
-        const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-        const clickedTime = Math.floor(ratio * state.videoDuration);
+        const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
         const clipLen = state.endTime - state.startTime;
-        state.startTime = Math.max(0, Math.min(state.videoDuration - clipLen, clickedTime));
-        state.endTime = state.startTime + clipLen;
+        const targetStart = Math.round(ratio * Math.max(0, state.totalDuration - clipLen));
+
+        state.startTime = targetStart;
+        state.endTime = Math.min(state.totalDuration, targetStart + clipLen);
+        clampClipTimes('start');
         seekPlayerTo(state.startTime);
         syncAllUI();
+      }
+
+      track.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        updateFromClientX(e.clientX);
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (isDragging) updateFromClientX(e.clientX);
+      });
+      window.addEventListener('mouseup', () => {
+        isDragging = false;
       });
 
-      function onDragMove(e) {
-        if (!dragMode) return;
-        const rect = track.getBoundingClientRect();
-        const deltaX = getPointerX(e) - dragStartX;
-        const deltaSeconds = Math.round((deltaX / rect.width) * state.videoDuration);
-
-        if (dragMode === 'window') {
-          const clipLen = initialEnd - initialStart;
-          let newStart = Math.max(0, Math.min(state.videoDuration - clipLen, initialStart + deltaSeconds));
-          state.startTime = newStart;
-          state.endTime = newStart + clipLen;
-        } else if (dragMode === 'start') {
-          let newStart = Math.max(0, Math.min(initialEnd - 5, initialStart + deltaSeconds));
-          if (state.lockRange15to30) {
-            newStart = Math.max(initialEnd - 30, Math.min(initialEnd - 15, newStart));
-          }
-          state.startTime = Math.max(0, newStart);
-        } else if (dragMode === 'end') {
-          let newEnd = Math.min(state.videoDuration, Math.max(initialStart + 5, initialEnd + deltaSeconds));
-          if (state.lockRange15to30) {
-            newEnd = Math.min(initialStart + 30, Math.max(initialStart + 15, newEnd));
-          }
-          state.endTime = Math.min(state.videoDuration, newEnd);
-        }
-
-        syncAllUI();
-      }
-
-      function onDragEnd() {
-        if (dragMode) {
-          dragMode = null;
-          seekPlayerTo(state.startTime);
-        }
-      }
-
-      window.addEventListener('mousemove', onDragMove);
-      window.addEventListener('touchmove', onDragMove, { passive: true });
-      window.addEventListener('mouseup', onDragEnd);
-      window.addEventListener('touchend', onDragEnd);
-    }
+      track.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        if (e.touches[0]) updateFromClientX(e.touches[0].clientX);
+      }, { passive: true });
+      track.addEventListener('touchmove', (e) => {
+        if (isDragging && e.touches[0]) updateFromClientX(e.touches[0].clientX);
+      }, { passive: true });
+      track.addEventListener('touchend', () => {
+        isDragging = false;
+      });
+    })();
 
     /**
-     * 5. PEMUTARAN OTOMATIS & LOOPING KLIP 15-30 DETIK
+     * =========================================================================
+     * 6. KONTROL PEMUTARAN & AUTO-LOOP [START, END]
+     * =========================================================================
      */
-    function getCurrentPlayerTime() {
+    function getCurrentPlaybackTime() {
       if (state.sourceType === 'local') {
-        return document.getElementById('local-video-player').currentTime || 0;
+        return document.getElementById('local-video-player').currentTime || state.startTime;
       }
-      if (ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
-        return ytPlayer.getCurrentTime() || 0;
+      if (state.ytReady && state.ytPlayer && typeof state.ytPlayer.getCurrentTime === 'function') {
+        return state.ytPlayer.getCurrentTime();
       }
       return state.startTime;
     }
@@ -1191,332 +1153,493 @@
     function seekPlayerTo(seconds) {
       if (state.sourceType === 'local') {
         document.getElementById('local-video-player').currentTime = seconds;
-      } else if (ytPlayer && typeof ytPlayer.seekTo === 'function') {
-        ytPlayer.seekTo(seconds, true);
+      } else if (state.ytReady && state.ytPlayer && typeof state.ytPlayer.seekTo === 'function') {
+        state.ytPlayer.seekTo(seconds, true);
       }
-    }
-
-    function startPlaybackMonitor() {
-      if (playbackInterval) clearInterval(playbackInterval);
-      playbackInterval = setInterval(() => {
-        const cur = getCurrentPlayerTime();
-        const clipLen = Math.max(1, state.endTime - state.startTime);
-
-        // Jika melewati akhir potongan atau sebelum awal potongan, ulangi otomatis!
-        if (cur >= state.endTime || cur < state.startTime - 0.8) {
-          seekPlayerTo(state.startTime);
-        }
-
-        // Update progress bar atas di preview 9:16
-        const elapsedInClip = Math.max(0, Math.min(clipLen, cur - state.startTime));
-        const pct = (elapsedInClip / clipLen) * 100;
-        document.getElementById('clip-progress-bar').style.width = `${pct}%`;
-
-        // Update jarum playhead di timeline utama
-        const globalPct = Math.min(100, Math.max(0, (cur / Math.max(1, state.videoDuration)) * 100));
-        document.getElementById('timeline-playhead').style.left = `${globalPct}%`;
-
-        // Update teks timer berjalan
-        document.getElementById('clip-live-timer').textContent = `${formatTime(Math.floor(elapsedInClip))} / ${formatTime(clipLen)}`;
-        document.getElementById('absolute-video-timer').textContent = `Video: ${formatTime(Math.floor(cur))}`;
-      }, 150);
     }
 
     function togglePlayPause() {
       if (state.sourceType === 'local') {
         const vid = document.getElementById('local-video-player');
         if (vid.paused) {
+          if (vid.currentTime < state.startTime || vid.currentTime >= state.endTime) {
+            vid.currentTime = state.startTime;
+          }
           vid.play();
           state.isPlaying = true;
         } else {
           vid.pause();
           state.isPlaying = false;
         }
-        updatePlayPauseUI();
+        updatePlayPauseButtonUI();
         return;
       }
 
-      if (!ytPlayer || typeof ytPlayer.getPlayerState !== 'function') return;
-      const playerState = ytPlayer.getPlayerState();
+      if (!state.ytReady || !state.ytPlayer) return;
+      const playerState = state.ytPlayer.getPlayerState();
       if (playerState === YT.PlayerState.PLAYING) {
-        ytPlayer.pauseVideo();
+        state.ytPlayer.pauseVideo();
         state.isPlaying = false;
       } else {
-        ytPlayer.playVideo();
+        const cur = getCurrentPlaybackTime();
+        if (cur < state.startTime || cur >= state.endTime) {
+          seekPlayerTo(state.startTime);
+        }
+        state.ytPlayer.playVideo();
         state.isPlaying = true;
       }
-      updatePlayPauseUI();
+      updatePlayPauseButtonUI();
     }
 
-    function restartClipSegment() {
+    function replayClipFromStart() {
       seekPlayerTo(state.startTime);
-      if (!state.isPlaying) togglePlayPause();
+      if (state.sourceType === 'local') {
+        document.getElementById('local-video-player').play();
+      } else if (state.ytReady && state.ytPlayer) {
+        state.ytPlayer.playVideo();
+      }
+      state.isPlaying = true;
+      updatePlayPauseButtonUI();
     }
 
     function toggleMute() {
       state.isMuted = !state.isMuted;
       if (state.sourceType === 'local') {
         document.getElementById('local-video-player').muted = state.isMuted;
-      } else if (ytPlayer && typeof ytPlayer.mute === 'function') {
-        state.isMuted ? ytPlayer.mute() : ytPlayer.unMute();
+      } else if (state.ytReady && state.ytPlayer) {
+        state.isMuted ? state.ytPlayer.mute() : state.ytPlayer.unMute();
       }
       document.getElementById('icon-unmuted').classList.toggle('hidden', state.isMuted);
       document.getElementById('icon-muted').classList.toggle('hidden', !state.isMuted);
     }
 
-    function updatePlayPauseUI() {
-      document.getElementById('icon-play').classList.toggle('hidden', state.isPlaying);
-      document.getElementById('icon-pause').classList.toggle('hidden', !state.isPlaying);
+    function startPlaybackMonitor() {
+      if (state.monitorTimer) clearInterval(state.monitorTimer);
+      state.monitorTimer = setInterval(() => {
+        const cur = getCurrentPlaybackTime();
+        document.getElementById('live-timer-badge').textContent = `${formatTime(Math.floor(cur))} / ${formatTime(state.endTime)}`;
+
+        const playheadPct = state.totalDuration > 0 ? Math.min(100, (cur / state.totalDuration) * 100) : 0;
+        document.getElementById('timeline-playhead').style.left = `${playheadPct}%`;
+
+        // Auto-loop saat mencapai titik akhir klip (kecuali sedang merekam export)
+        if (state.isPlaying && !state.isRecording && cur >= state.endTime) {
+          seekPlayerTo(state.startTime);
+        }
+      }, 200);
     }
 
     /**
-     * 6. KONTROL FRAMING 9:16 (PAN X, BLUR MODE, HOOK OVERLAY)
+     * =========================================================================
+     * 7. PENGATURAN FRAMING 9:16, HOOK TEKS & ANTREAN KLIP
+     * =========================================================================
      */
-    function setCropMode(mode) {
-      state.cropMode = mode;
-      const box = document.getElementById('player-aspect-box');
-      const blurBg = document.getElementById('blur-backdrop');
+    function setFramingMode(mode) {
+      state.framingMode = mode;
+      const wrapper = document.getElementById('yt-player-wrapper');
+      const backdrop = document.getElementById('blur-backdrop');
       const fillBtn = document.getElementById('mode-fill-btn');
-      const blurBtn = document.getElementById('mode-blur-btn');
+      const fitBtn = document.getElementById('mode-fit-btn');
 
       if (mode === 'fill') {
-        box.classList.remove('w-full', 'h-auto');
-        box.classList.add('h-full');
-        blurBg.classList.add('hidden');
-        updatePanX(state.panX);
-
-        fillBtn.className = 'p-2.5 rounded-xl border border-indigo-500 bg-indigo-500/15 text-xs font-semibold text-white flex flex-col items-center gap-1 transition';
-        blurBtn.className = 'p-2.5 rounded-xl border border-zinc-700 bg-zinc-950 hover:bg-zinc-800 text-xs font-semibold text-zinc-400 flex flex-col items-center gap-1 transition';
+        wrapper.className = 'h-full aspect-video shrink-0 transition-transform duration-150';
+        backdrop.classList.add('hidden');
+        fillBtn.className = 'py-2 px-3 rounded-xl text-xs font-bold bg-indigo-600 text-white transition';
+        fitBtn.className = 'py-2 px-3 rounded-xl text-xs font-bold bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800 transition';
       } else {
-        box.classList.remove('h-full');
-        box.classList.add('w-full', 'h-auto');
-        box.style.transform = 'translateX(0%)';
-        blurBg.classList.remove('hidden');
-
-        blurBtn.className = 'p-2.5 rounded-xl border border-indigo-500 bg-indigo-500/15 text-xs font-semibold text-white flex flex-col items-center gap-1 transition';
-        fillBtn.className = 'p-2.5 rounded-xl border border-zinc-700 bg-zinc-950 hover:bg-zinc-800 text-xs font-semibold text-zinc-400 flex flex-col items-center gap-1 transition';
+        wrapper.className = 'w-full aspect-video shrink-0 transition-transform duration-150';
+        wrapper.style.transform = 'translateX(0%)';
+        backdrop.classList.remove('hidden');
+        fitBtn.className = 'py-2 px-3 rounded-xl text-xs font-bold bg-indigo-600 text-white transition';
+        fillBtn.className = 'py-2 px-3 rounded-xl text-xs font-bold bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800 transition';
       }
     }
 
     function updatePanX(val) {
-      state.panX = parseInt(val) || 0;
-      document.getElementById('pan-x-value').textContent = `${state.panX > 0 ? '+' : ''}${state.panX}%`;
-      if (state.cropMode === 'fill') {
-        // Pergeseran proporsional maksimal 34.18% dari lebar 16:9 agar tidak pernah memunculkan ruang kosong di tepi
-        const shiftPercent = (state.panX / 100) * 34.18;
-        document.getElementById('player-aspect-box').style.transform = `translateX(${shiftPercent}%)`;
+      state.panX = parseInt(val, 10) || 0;
+      document.getElementById('pan-x-slider').value = state.panX;
+      document.getElementById('pan-value-label').textContent = `${state.panX}%`;
+
+      if (state.framingMode === 'fill') {
+        const translatePct = -(state.panX * 0.34);
+        document.getElementById('yt-player-wrapper').style.transform = `translateX(${translatePct}%)`;
       }
+      const localVid = document.getElementById('local-video-player');
+      localVid.style.objectPosition = `${50 + state.panX * 0.5}% center`;
     }
 
-    function resetPanX() {
-      document.getElementById('pan-x-slider').value = 0;
-      updatePanX(0);
-    }
-
-    function updateHookOverlay(text) {
+    function updateHookText(text) {
       state.hookText = text.trim();
-      const container = document.getElementById('hook-overlay-container');
-      const badge = document.getElementById('hook-overlay-badge');
-      if (state.hookText.length > 0) {
-        badge.textContent = state.hookText;
-        container.classList.remove('hidden');
+      const overlay = document.getElementById('hook-banner-overlay');
+      const bannerText = document.getElementById('hook-banner-text');
+      if (state.hookText) {
+        bannerText.textContent = state.hookText;
+        overlay.classList.remove('hidden');
       } else {
-        container.classList.add('hidden');
-      }
-    }
-
-    function updateHookStyle(styleKey) {
-      state.hookStyle = styleKey;
-      const badge = document.getElementById('hook-overlay-badge');
-      if (styleKey === 'viral-box') {
-        badge.className = 'px-3.5 py-2 rounded-xl bg-amber-400 text-zinc-950 font-extrabold text-sm uppercase tracking-tight shadow-xl leading-snug max-w-[92%]';
-      } else if (styleKey === 'dark-pill') {
-        badge.className = 'px-4 py-2 rounded-full bg-zinc-950/90 border border-white/20 text-white font-bold text-xs tracking-wide shadow-xl leading-snug max-w-[92%]';
-      } else {
-        badge.className = 'px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white font-extrabold text-sm tracking-tight shadow-xl leading-snug max-w-[92%]';
+        overlay.classList.add('hidden');
       }
     }
 
     function toggleSafeZone(checked) {
-      document.getElementById('safezone-overlay').classList.toggle('hidden', !checked);
+      state.safeZone = checked;
+      document.getElementById('safe-zone-overlay').classList.toggle('hidden', !checked);
+    }
+
+    function saveCurrentClipToQueue() {
+      const clip = {
+        id: Date.now(),
+        startTime: state.startTime,
+        endTime: state.endTime,
+        duration: state.endTime - state.startTime,
+        panX: state.panX,
+        hookText: state.hookText
+      };
+      state.clipQueue.push(clip);
+      renderClipQueue();
+      showToast(`Klip ${formatTime(clip.startTime)}–${formatTime(clip.endTime)} (${clip.duration}d) disimpan ke antrean!`, 'success');
+    }
+
+    function renderClipQueue() {
+      const wrapper = document.getElementById('clip-queue-wrapper');
+      const list = document.getElementById('clip-queue-list');
+      document.getElementById('queue-count').textContent = state.clipQueue.length;
+
+      if (state.clipQueue.length === 0) {
+        wrapper.classList.add('hidden');
+        return;
+      }
+      wrapper.classList.remove('hidden');
+      list.innerHTML = '';
+
+      state.clipQueue.forEach((clip, idx) => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'px-3 py-1.5 rounded-xl bg-zinc-950 hover:bg-zinc-800 border border-zinc-700 text-xs font-mono text-zinc-200 flex items-center gap-2 transition';
+        chip.innerHTML = `<span class="text-indigo-400 font-bold">#${idx + 1}</span> <span>${formatTime(clip.startTime)}–${formatTime(clip.endTime)} (${clip.duration}d)</span>`;
+        chip.onclick = () => {
+          state.startTime = clip.startTime;
+          state.endTime = clip.endTime;
+          updatePanX(clip.panX);
+          document.getElementById('hook-text-input').value = clip.hookText;
+          updateHookText(clip.hookText);
+          seekPlayerTo(state.startTime);
+          syncAllUI();
+        };
+        list.appendChild(chip);
+      });
+    }
+
+    function clearClipQueue() {
+      state.clipQueue = [];
+      renderClipQueue();
     }
 
     /**
-     * 7. SINKRONISASI UI & FORMAT WAKTU
+     * =========================================================================
+     * 8. SINKRONISASI UI & HELPER WAKTU
+     * =========================================================================
      */
-    function formatTime(totalSeconds) {
-      const s = Math.max(0, Math.floor(totalSeconds));
+    function formatTime(totalSec) {
+      const s = Math.max(0, Math.floor(totalSec));
       const mins = Math.floor(s / 60);
       const secs = s % 60;
       return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     }
 
     function syncAllUI() {
-      // Update Input Menit & Detik
+      document.getElementById('active-video-title').textContent = state.videoTitle;
+      document.getElementById('total-duration-badge').textContent = `Total: ${formatTime(state.totalDuration)}`;
+      document.getElementById('timeline-max-label').textContent = formatTime(state.totalDuration);
+
       document.getElementById('start-min').value = Math.floor(state.startTime / 60);
       document.getElementById('start-sec').value = state.startTime % 60;
       document.getElementById('end-min').value = Math.floor(state.endTime / 60);
       document.getElementById('end-sec').value = state.endTime % 60;
 
-      // Update Durasi & Status Ideal 15-30 Detik
-      const clipDur = state.endTime - state.startTime;
-      const statusBadge = document.getElementById('duration-status-badge');
-      const durText = document.getElementById('clip-duration-text');
+      const clipLen = state.endTime - state.startTime;
+      const pill = document.getElementById('clip-duration-pill');
+      pill.textContent = `Durasi Klip: ${clipLen} Detik`;
 
-      if (clipDur >= 15 && clipDur <= 30) {
-        statusBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold font-mono';
-        durText.textContent = `${clipDur} Detik (Ideal 15-30d)`;
+      if (clipLen >= 15 && clipLen <= 30) {
+        pill.className = 'font-mono text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
       } else {
-        statusBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-bold font-mono';
-        durText.textContent = `${clipDur} Detik (Di luar 15-30d)`;
+        pill.className = 'font-mono text-xs font-bold px-3 py-1 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30';
       }
 
-      // Update Visual Timeline
-      const total = Math.max(1, state.videoDuration);
-      const leftPct = (state.startTime / total) * 100;
-      const widthPct = ((state.endTime - state.startTime) / total) * 100;
-      const rightPct = Math.max(0, 100 - leftPct - widthPct);
+      document.getElementById('timeline-range-label').textContent = `Potongan: ${formatTime(state.startTime)} — ${formatTime(state.endTime)} (${clipLen}d)`;
 
-      document.getElementById('timeline-left-mask').style.width = `${leftPct}%`;
-      document.getElementById('timeline-right-mask').style.width = `${rightPct}%`;
-      document.getElementById('timeline-selection').style.left = `${leftPct}%`;
-      document.getElementById('timeline-selection').style.width = `${Math.max(2, widthPct)}%`;
+      const startPct = state.totalDuration > 0 ? (state.startTime / state.totalDuration) * 100 : 0;
+      const widthPct = state.totalDuration > 0 ? ((state.endTime - state.startTime) / state.totalDuration) * 100 : 10;
+      const sel = document.getElementById('timeline-selection');
+      sel.style.left = `${Math.min(100, startPct)}%`;
+      sel.style.width = `${Math.max(2, Math.min(100 - startPct, widthPct))}%`;
 
-      document.getElementById('timeline-range-label').textContent = `Potongan: ${formatTime(state.startTime)} → ${formatTime(state.endTime)}`;
-      document.getElementById('total-duration-label').textContent = formatTime(state.videoDuration);
-      document.getElementById('preview-loop-badge').textContent = `Loop: ${formatTime(state.startTime)} - ${formatTime(state.endTime)}`;
+      document.getElementById('live-timer-badge').textContent = `${formatTime(state.startTime)} / ${formatTime(state.endTime)}`;
+      updatePlayPauseButtonUI();
+    }
+
+    function updatePlayPauseButtonUI() {
+      const label = document.getElementById('play-pause-label');
+      label.textContent = state.isPlaying ? 'Jeda Klip' : 'Putar Klip';
     }
 
     /**
-     * 8. ANTREAN KLIP TERSIMPAN (CLIP QUEUE)
-     */
-    function saveCurrentClipToQueue() {
-      const clip = {
-        id: Date.now(),
-        videoId: state.videoId,
-        sourceType: state.sourceType,
-        title: state.hookText || state.videoTitle,
-        startTime: state.startTime,
-        endTime: state.endTime,
-        duration: state.endTime - state.startTime,
-        panX: state.panX,
-        cropMode: state.cropMode
-      };
-
-      state.savedClips.unshift(clip);
-      renderSavedClipsList();
-      showToast(`Klip ${formatTime(clip.startTime)}–${formatTime(clip.endTime)} (${clip.duration}d) disimpan!`, 'success');
-    }
-
-    function loadSavedClip(id) {
-      const clip = state.savedClips.find(c => c.id === id);
-      if (!clip) return;
-
-      state.startTime = clip.startTime;
-      state.endTime = clip.endTime;
-      state.panX = clip.panX;
-      document.getElementById('pan-x-slider').value = clip.panX;
-      setCropMode(clip.cropMode);
-
-      if (clip.sourceType === 'youtube' && clip.videoId !== state.videoId) {
-        state.videoId = clip.videoId;
-        document.getElementById('youtube-url-input').value = `https://www.youtube.com/watch?v=${clip.videoId}`;
-        createYouTubePlayer(clip.videoId);
-      } else {
-        seekPlayerTo(state.startTime);
-      }
-
-      syncAllUI();
-      showToast('Memuat klip tersimpan ke pratinjau 9:16.', 'info');
-    }
-
-    function deleteSavedClip(id) {
-      state.savedClips = state.savedClips.filter(c => c.id !== id);
-      renderSavedClipsList();
-    }
-
-    function renderSavedClipsList() {
-      const container = document.getElementById('saved-clips-container');
-      document.getElementById('saved-count-badge').textContent = state.savedClips.length;
-
-      if (state.savedClips.length === 0) {
-        container.innerHTML = `
-          <div class="text-center py-6 border border-dashed border-zinc-800 rounded-xl text-xs text-zinc-500">
-            Belum ada klip disimpan. Atur menit/detik potongan lalu klik <strong class="text-zinc-300">+ Simpan Klip</strong>.
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = state.savedClips.map((clip, idx) => `
-        <div class="flex items-center justify-between gap-3 p-3 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-zinc-700 transition">
-          <div class="flex items-center gap-3 min-w-0 cursor-pointer flex-1" onclick="loadSavedClip(${clip.id})">
-            <span class="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-300 font-mono text-xs font-bold flex items-center justify-center shrink-0">#${state.savedClips.length - idx}</span>
-            <div class="min-w-0">
-              <div class="text-xs font-bold text-white truncate">${escapeHtml(clip.title)}</div>
-              <div class="text-[11px] font-mono text-zinc-400">
-                ${formatTime(clip.startTime)} → ${formatTime(clip.endTime)} • <span class="text-emerald-400 font-semibold">${clip.duration}d</span> • 9:16
-              </div>
-            </div>
-          </div>
-          <div class="flex items-center gap-1.5 shrink-0">
-            <button onclick="loadSavedClip(${clip.id})" class="px-2.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-indigo-600 text-[11px] font-semibold text-white transition">Putar</button>
-            <button onclick="deleteSavedClip(${clip.id})" class="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-zinc-900 transition" title="Hapus">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    /**
-     * 9. MODAL EXPORT & RENDER VIDEO 9:16 NYATA (CANVAS / MEDIARECORDER + FFMPEG)
+     * =========================================================================
+     * 9. MODAL EXPORT & RENDER VIDEO 9:16 LANGSUNG KE .MP4 (H.264)
+     * =========================================================================
      */
     function openExportModal() {
-      const dur = state.endTime - state.startTime;
-      document.getElementById('export-summary-start').textContent = formatTime(state.startTime);
-      document.getElementById('export-summary-end').textContent = formatTime(state.endTime);
-      document.getElementById('export-summary-dur').textContent = `${dur} Detik`;
+      const clipLen = state.endTime - state.startTime;
+      document.getElementById('modal-start-time').textContent = formatTime(state.startTime);
+      document.getElementById('modal-end-time').textContent = formatTime(state.endTime);
+      document.getElementById('modal-duration-time').textContent = `${clipLen}d (.MP4)`;
       document.getElementById('render-progress-box').classList.add('hidden');
 
-      // Generate perintah yt-dlp + ffmpeg akurat sesuai input pengguna
-      const startStr = formatTime(state.startTime);
-      const endStr = formatTime(state.endTime);
-      const panOffsetRatio = (state.panX + 100) / 200; // 0.0 (kiri) sampai 1.0 (kanan)
       const ytUrl = `https://www.youtube.com/watch?v=${state.videoId}`;
-      const cmd = `yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4" --download-sections "*${startStr}-${endStr}" "${ytUrl}" -o "raw.mp4" && ffmpeg -i raw.mp4 -vf "crop=ih*9/16:ih:(iw-ih*9/16)*${panOffsetRatio.toFixed(2)}:0,scale=1080:1920" -c:a copy klip_9x16_${dur}s.mp4`;
-      document.getElementById('ffmpeg-command-preview').textContent = cmd;
+      const cmd = `yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4" --download-sections "*${formatTime(state.startTime)}-${formatTime(state.endTime)}" -o "klip_9x16.mp4" "${ytUrl}" && ffmpeg -i klip_9x16.mp4 -vf "crop=ih*9/16:ih,scale=1080:1920" -c:v libx264 -crf 18 -c:a aac "final_shorts_9x16.mp4"`;
+      document.getElementById('ffmpeg-command-box').textContent = cmd;
 
       document.getElementById('export-modal').classList.remove('hidden');
     }
 
     function closeExportModal() {
-      if (state.isRecording) {
-        showToast('Proses perekaman sedang berjalan, tunggu sebentar...', 'info');
+      document.getElementById('export-modal').classList.add('hidden');
+    }
+
+    function getBestMp4MediaRecorderMime() {
+      if (typeof MediaRecorder === 'undefined') return null;
+      const candidates = [
+        'video/mp4; codecs="avc1.42E01E, mp4a.40.2"',
+        'video/mp4; codecs="avc1.4d401f, mp4a.40.2"',
+        'video/mp4; codecs=avc1',
+        'video/mp4'
+      ];
+      for (const mime of candidates) {
+        try {
+          if (MediaRecorder.isTypeSupported(mime)) return mime;
+        } catch (_) {}
+      }
+      return null;
+    }
+
+    /**
+     * Mesin Render Terpadu: Menghasilkan file .MP4 (H.264) secara langsung
+     * Prioritas 1: Native MediaRecorder MP4 (Video + Audio)
+     * Prioritas 2: WebCodecs VideoEncoder + Built-in MiniMp4Muxer (.MP4 H.264)
+     * Prioritas 3: Fallback otomatis ke .WebM jika browser lama tidak mendukung MP4
+     */
+    async function encodeCanvasToMp4File({
+      canvas,
+      audioTracks = [],
+      durationSeconds,
+      onRenderFrame,
+      onCompleteCleanup,
+      filenameBase
+    }) {
+      const progressBox = document.getElementById('render-progress-box');
+      const progressFill = document.getElementById('render-progress-fill');
+      const percentText = document.getElementById('render-percent-text');
+      const statusText = document.getElementById('render-status-text');
+      progressBox.classList.remove('hidden');
+
+      const updateProgress = (pct, label) => {
+        progressFill.style.width = `${pct}%`;
+        percentText.textContent = `${pct}%`;
+        if (label) statusText.textContent = label;
+      };
+
+      // --- JALUR 1: NATIVE MEDIARECORDER MP4 ---
+      const nativeMp4Mime = getBestMp4MediaRecorderMime();
+      if (nativeMp4Mime) {
+        updateProgress(0, 'Merender video .MP4 (H.264 Native)...');
+        const stream = canvas.captureStream(30);
+        audioTracks.forEach(track => stream.addTrack(track));
+
+        const chunks = [];
+        const recorder = new MediaRecorder(stream, {
+          mimeType: nativeMp4Mime,
+          videoBitsPerSecond: 4_000_000
+        });
+        recorder.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+
+        recorder.onstop = () => {
+          if (onCompleteCleanup) onCompleteCleanup();
+          const blob = new Blob(chunks, { type: 'video/mp4' });
+          triggerBlobDownload(blob, `${filenameBase}.mp4`);
+          state.isRecording = false;
+          showToast('Selesai! File video .MP4 (9:16) telah terunduh.', 'success');
+        };
+
+        recorder.start(200);
+        const startStamp = performance.now();
+
+        function loopNativeMp4() {
+          const elapsed = (performance.now() - startStamp) / 1000;
+          const pct = Math.min(100, Math.round((elapsed / durationSeconds) * 100));
+          updateProgress(pct);
+          onRenderFrame(elapsed);
+
+          if (elapsed < durationSeconds) {
+            requestAnimationFrame(loopNativeMp4);
+          } else {
+            recorder.stop();
+          }
+        }
+        requestAnimationFrame(loopNativeMp4);
         return;
       }
-      document.getElementById('export-modal').classList.add('hidden');
+
+      // --- JALUR 2: WEBCODECS (VideoEncoder + Built-in MiniMp4Muxer) -> .MP4 H.264 ---
+      if (typeof VideoEncoder !== 'undefined' && typeof VideoFrame !== 'undefined') {
+        try {
+          const avcCandidates = ['avc1.42001f', 'avc1.4d001f', 'avc1.64001f'];
+          let selectedAvc = null;
+          for (const codec of avcCandidates) {
+            const support = await VideoEncoder.isConfigSupported({
+              codec,
+              width: canvas.width,
+              height: canvas.height,
+              bitrate: 3_500_000,
+              framerate: 30
+            });
+            if (support.supported) {
+              selectedAvc = codec;
+              break;
+            }
+          }
+
+          if (!selectedAvc) throw new Error('Codec H.264 tidak tersedia di WebCodecs.');
+
+          updateProgress(0, 'Mengompilasi video .MP4 (WebCodecs H.264)...');
+
+          const muxer = new MiniMp4Muxer({
+            width: canvas.width,
+            height: canvas.height,
+            timescale: 90000
+          });
+
+          const videoEncoder = new VideoEncoder({
+            output: (chunk, meta) => {
+              const rawBytes = new Uint8Array(chunk.byteLength);
+              chunk.copyTo(rawBytes);
+              const avcC = meta && meta.decoderConfig && meta.decoderConfig.description
+                ? meta.decoderConfig.description
+                : null;
+              muxer.addSample({
+                data: rawBytes,
+                durationUs: chunk.duration || 33333,
+                isKey: chunk.type === 'key',
+                avcC
+              });
+            },
+            error: (e) => console.error('VideoEncoder error:', e)
+          });
+
+          videoEncoder.configure({
+            codec: selectedAvc,
+            width: canvas.width,
+            height: canvas.height,
+            bitrate: 3_500_000,
+            framerate: 30
+          });
+
+          const startStamp = performance.now();
+          let frameIndex = 0;
+          let lastTimestampUs = -33333;
+
+          await new Promise((resolve) => {
+            function stepWebCodecs() {
+              const elapsed = (performance.now() - startStamp) / 1000;
+              const pct = Math.min(100, Math.round((elapsed / durationSeconds) * 100));
+              updateProgress(pct);
+              onRenderFrame(elapsed);
+
+              const timestampUs = Math.max(lastTimestampUs + 16667, Math.round(elapsed * 1_000_000));
+              const durationUs = Math.max(16667, timestampUs - lastTimestampUs);
+              lastTimestampUs = timestampUs;
+
+              if (videoEncoder.state === 'configured') {
+                const frame = new VideoFrame(canvas, { timestamp: timestampUs, duration: durationUs });
+                videoEncoder.encode(frame, { keyFrame: frameIndex % 30 === 0 });
+                frame.close();
+                frameIndex++;
+              }
+
+              if (elapsed < durationSeconds) {
+                requestAnimationFrame(stepWebCodecs);
+              } else {
+                resolve();
+              }
+            }
+            requestAnimationFrame(stepWebCodecs);
+          });
+
+          await videoEncoder.flush();
+          videoEncoder.close();
+
+          if (onCompleteCleanup) onCompleteCleanup();
+
+          const mp4Buffer = muxer.buildMp4Buffer();
+          const mp4Blob = new Blob([mp4Buffer], { type: 'video/mp4' });
+          triggerBlobDownload(mp4Blob, `${filenameBase}.mp4`);
+          state.isRecording = false;
+          showToast('Selesai! Video .MP4 (H.264) berhasil dibuat & diunduh.', 'success');
+          return;
+        } catch (webCodecsErr) {
+          console.warn('Beralih ke fallback WebM:', webCodecsErr);
+        }
+      }
+
+      // --- JALUR 3: FALLBACK OTOMATIS KE .WEBM (Untuk Browser Lama) ---
+      updateProgress(0, 'Merender video klip (Fallback WebM)...');
+      const fallbackStream = canvas.captureStream(30);
+      audioTracks.forEach(track => fallbackStream.addTrack(track));
+
+      const chunks = [];
+      const recorder = new MediaRecorder(fallbackStream, { mimeType: 'video/webm' });
+      recorder.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+      recorder.onstop = () => {
+        if (onCompleteCleanup) onCompleteCleanup();
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        triggerBlobDownload(blob, `${filenameBase}.webm`);
+        state.isRecording = false;
+        showToast('Video berhasil diunduh (format WebM karena browser tidak mendukung MP4 encoder).', 'info');
+      };
+
+      recorder.start();
+      const startStamp = performance.now();
+      function loopFallback() {
+        const elapsed = (performance.now() - startStamp) / 1000;
+        const pct = Math.min(100, Math.round((elapsed / durationSeconds) * 100));
+        updateProgress(pct);
+        onRenderFrame(elapsed);
+
+        if (elapsed < durationSeconds) {
+          requestAnimationFrame(loopFallback);
+        } else {
+          recorder.stop();
+        }
+      }
+      requestAnimationFrame(loopFallback);
     }
 
     async function start9x16VideoRender() {
       if (state.isRecording) return;
-      const clipDuration = state.endTime - state.startTime;
+      const clipDuration = Math.max(5, state.endTime - state.startTime);
 
-      // Jika sumber adalah Video Lokal MP4 -> Render langsung via Offscreen Canvas 720x1280 (9:16)!
+      // JALUR A: Jika sumbernya Video Lokal -> Render Kanvas 9:16 langsung ke .MP4
       if (state.sourceType === 'local') {
         await renderLocalVideoTo9x16(clipDuration);
         return;
       }
 
-      // Jika sumber adalah YouTube -> Gunakan Tab/Screen Capture API dengan Crop Presisi ke Bingkai 9:16
+      // JALUR B: Jika sumbernya YouTube IFrame -> Tab Capture + Crop Area 9:16 ke .MP4
       try {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
-          throw new Error('Browser tidak mendukung Screen Capture.');
+          throw new Error('DisplayMedia tidak didukung di lingkungan sandbox ini.');
         }
 
-        showToast('Pilih tab browser ini pada dialog yang muncul untuk merekam klip 9:16.', 'info');
+        showToast('Pilih tab browser ini untuk merekam klip 9:16 langsung ke file .MP4.', 'info');
         const displayStream = await navigator.mediaDevices.getDisplayMedia({
           video: { frameRate: 30 },
           audio: true,
@@ -1524,97 +1647,58 @@
         });
 
         await recordCroppedStageFromStream(displayStream, clipDuration);
-      } catch (err) {
-        // Fallback otomatis jika izin screen capture dibatalkan / dibatasi sandbox iframe
-        showToast('Menjalankan mode simulasi render 9:16 langsung...', 'info');
+      } catch (_) {
+        // Fallback jika izin layar ditolak atau iframe sandbox membatasi getDisplayMedia
+        showToast('Membuat ringkasan klip .MP4 (Gunakan file MP4 lokal atau CLI untuk kualitas penuh YouTube).', 'info');
         await renderFallbackCanvasClip(clipDuration);
       }
     }
 
-    /**
-     * Render Video Lokal ke Kanvas 9:16 (720x1280) + Audio
-     */
     async function renderLocalVideoTo9x16(clipDuration) {
       state.isRecording = true;
-      const progressBox = document.getElementById('render-progress-box');
-      const progressFill = document.getElementById('render-progress-fill');
-      const percentText = document.getElementById('render-percent-text');
-      progressBox.classList.remove('hidden');
-
       const sourceVideo = document.getElementById('local-video-player');
       const canvas = document.createElement('canvas');
       canvas.width = 720;
       canvas.height = 1280;
       const ctx = canvas.getContext('2d');
 
-      const stream = canvas.captureStream(30);
-      if (sourceVideo.captureStream) {
-        const audioTracks = sourceVideo.captureStream().getAudioTracks();
-        audioTracks.forEach(t => stream.addTrack(t));
-      }
-
-      const chunks = [];
-      const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-      recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-
-      recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'video/webm' });
-        triggerBlobDownload(blob, `KlipKilat_9x16_${clipDuration}detik.webm`);
-        state.isRecording = false;
-        showToast('Berhasil! Video 9:16 telah terunduh.', 'success');
-      };
+      const audioTracks = sourceVideo.captureStream
+        ? sourceVideo.captureStream().getAudioTracks()
+        : [];
 
       sourceVideo.currentTime = state.startTime;
       await sourceVideo.play();
-      recorder.start();
 
-      const startStamp = performance.now();
-      function drawFrame() {
-        const elapsed = (performance.now() - startStamp) / 1000;
-        const pct = Math.min(100, Math.round((elapsed / clipDuration) * 100));
-        progressFill.style.width = `${pct}%`;
-        percentText.textContent = `${pct}%`;
+      await encodeCanvasToMp4File({
+        canvas,
+        audioTracks,
+        durationSeconds: clipDuration,
+        filenameBase: `KlipKilat_9x16_${clipDuration}detik`,
+        onRenderFrame: () => {
+          const vw = sourceVideo.videoWidth || 1280;
+          const vh = sourceVideo.videoHeight || 720;
+          const cropW = vh * (9 / 16);
+          const maxOffset = Math.max(0, vw - cropW);
+          const sx = ((state.panX + 100) / 200) * maxOffset;
 
-        // Hitung crop 9:16 dari sumber video 16:9
-        const vw = sourceVideo.videoWidth || 1280;
-        const vh = sourceVideo.videoHeight || 720;
-        const cropW = vh * (9 / 16);
-        const maxOffset = Math.max(0, vw - cropW);
-        const sx = ((state.panX + 100) / 200) * maxOffset;
+          ctx.fillStyle = '#000';
+          ctx.fillRect(0, 0, 720, 1280);
+          ctx.drawImage(sourceVideo, sx, 0, cropW, vh, 0, 0, 720, 1280);
 
-        ctx.fillStyle = '#000';
-        ctx.fillRect(0, 0, 720, 1280);
-        ctx.drawImage(sourceVideo, sx, 0, cropW, vh, 0, 0, 720, 1280);
-
-        // Gambar Hook Overlay jika ada
-        if (state.hookText) {
-          ctx.fillStyle = '#fbbf24';
-          ctx.fillRect(60, 110, 600, 76);
-          ctx.fillStyle = '#09090b';
-          ctx.font = 'bold 28px Inter, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText(state.hookText.toUpperCase(), 360, 158);
+          if (state.hookText) {
+            ctx.fillStyle = '#fbbf24';
+            ctx.fillRect(60, 110, 600, 76);
+            ctx.fillStyle = '#09090b';
+            ctx.font = 'bold 28px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(state.hookText.toUpperCase(), 360, 158);
+          }
         }
-
-        if (elapsed < clipDuration) {
-          requestAnimationFrame(drawFrame);
-        } else {
-          recorder.stop();
-        }
-      }
-      requestAnimationFrame(drawFrame);
+      });
     }
 
-    /**
-     * Rekam & Potong Tepat Area Bingkai 9:16 dari Tab Stream
-     */
     async function recordCroppedStageFromStream(displayStream, clipDuration) {
       state.isRecording = true;
-      const progressBox = document.getElementById('render-progress-box');
-      const progressFill = document.getElementById('render-progress-fill');
-      const percentText = document.getElementById('render-percent-text');
-      progressBox.classList.remove('hidden');
-
       const hiddenVid = document.createElement('video');
       hiddenVid.srcObject = displayStream;
       hiddenVid.muted = true;
@@ -1625,124 +1709,70 @@
       canvas.height = 1280;
       const ctx = canvas.getContext('2d');
 
-      const outStream = canvas.captureStream(30);
-      displayStream.getAudioTracks().forEach(track => outStream.addTrack(track));
-
-      const chunks = [];
-      const recorder = new MediaRecorder(outStream, { mimeType: 'video/webm' });
-      recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-
-      recorder.onstop = () => {
-        displayStream.getTracks().forEach(t => t.stop());
-        const blob = new Blob(chunks, { type: 'video/webm' });
-        triggerBlobDownload(blob, `YouTube_Klip_9x16_${clipDuration}detik.webm`);
-        state.isRecording = false;
-        showToast('Video klip 9:16 selesai dirender & diunduh!', 'success');
-      };
-
-      // Mulai klip dari detik awal potongan
       seekPlayerTo(state.startTime);
       if (!state.isPlaying) togglePlayPause();
 
-      recorder.start();
-      const startStamp = performance.now();
+      await encodeCanvasToMp4File({
+        canvas,
+        audioTracks: displayStream.getAudioTracks(),
+        durationSeconds: clipDuration,
+        filenameBase: `YouTube_Klip_9x16_${clipDuration}detik`,
+        onCompleteCleanup: () => {
+          displayStream.getTracks().forEach(t => t.stop());
+        },
+        onRenderFrame: () => {
+          const stageRect = document.getElementById('phone-preview-stage').getBoundingClientRect();
+          const scaleX = hiddenVid.videoWidth / window.innerWidth;
+          const scaleY = hiddenVid.videoHeight / window.innerHeight;
 
-      function captureLoop() {
-        const elapsed = (performance.now() - startStamp) / 1000;
-        const pct = Math.min(100, Math.round((elapsed / clipDuration) * 100));
-        progressFill.style.width = `${pct}%`;
-        percentText.textContent = `${pct}%`;
-
-        // Petakan koordinat bingkai smartphone 9:16 ke resolusi stream tab
-        const stageRect = document.getElementById('phone-preview-stage').getBoundingClientRect();
-        const scaleX = hiddenVid.videoWidth / window.innerWidth;
-        const scaleY = hiddenVid.videoHeight / window.innerHeight;
-
-        ctx.drawImage(
-          hiddenVid,
-          stageRect.left * scaleX,
-          stageRect.top * scaleY,
-          stageRect.width * scaleX,
-          stageRect.height * scaleY,
-          0, 0, 720, 1280
-        );
-
-        if (elapsed < clipDuration) {
-          requestAnimationFrame(captureLoop);
-        } else {
-          recorder.stop();
+          ctx.drawImage(
+            hiddenVid,
+            stageRect.left * scaleX,
+            stageRect.top * scaleY,
+            stageRect.width * scaleX,
+            stageRect.height * scaleY,
+            0, 0, 720, 1280
+          );
         }
-      }
-      requestAnimationFrame(captureLoop);
+      });
     }
 
-    /**
-     * Fallback Render Ringkas jika Tab Capture tidak tersedia di lingkungan iframe
-     */
     async function renderFallbackCanvasClip(clipDuration) {
       state.isRecording = true;
-      const progressBox = document.getElementById('render-progress-box');
-      const progressFill = document.getElementById('render-progress-fill');
-      const percentText = document.getElementById('render-percent-text');
-      document.getElementById('render-status-text').textContent = 'Membuat file pratinjau 9:16...';
-      progressBox.classList.remove('hidden');
-
       const canvas = document.createElement('canvas');
       canvas.width = 720;
       canvas.height = 1280;
       const ctx = canvas.getContext('2d');
 
-      const stream = canvas.captureStream(30);
-      const chunks = [];
-      const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-      recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+      await encodeCanvasToMp4File({
+        canvas,
+        audioTracks: [],
+        durationSeconds: 2.5,
+        filenameBase: `KlipKilat_9x16_${state.videoId}_${clipDuration}d`,
+        onRenderFrame: () => {
+          const grad = ctx.createLinearGradient(0, 0, 720, 1280);
+          grad.addColorStop(0, '#1e1b4b');
+          grad.addColorStop(0.5, '#09090b');
+          grad.addColorStop(1, '#3b0764');
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, 720, 1280);
 
-      recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'video/webm' });
-        triggerBlobDownload(blob, `KlipKilat_9x16_${state.videoId}_${clipDuration}d.webm`);
-        state.isRecording = false;
-        showToast('File template klip 9:16 berhasil diunduh!', 'success');
-      };
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 36px Inter, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('KLIPKILAT 9:16 EXPORT (.MP4)', 360, 560);
 
-      recorder.start();
-      const simDuration = 2.5; // 2.5 detik render cepat
-      const startStamp = performance.now();
+          ctx.fillStyle = '#a5b4fc';
+          ctx.font = '24px JetBrains Mono, monospace';
+          ctx.fillText(`YouTube ID: ${state.videoId}`, 360, 620);
+          ctx.fillText(`Potongan: ${formatTime(state.startTime)} - ${formatTime(state.endTime)} (${clipDuration}d)`, 360, 665);
 
-      function drawSim() {
-        const elapsed = (performance.now() - startStamp) / 1000;
-        const pct = Math.min(100, Math.round((elapsed / simDuration) * 100));
-        progressFill.style.width = `${pct}%`;
-        percentText.textContent = `${pct}%`;
-
-        const grad = ctx.createLinearGradient(0, 0, 720, 1280);
-        grad.addColorStop(0, '#1e1b4b');
-        grad.addColorStop(0.5, '#09090b');
-        grad.addColorStop(1, '#3b0764');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, 720, 1280);
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 36px Inter, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('KLIPKILAT 9:16 EXPORT', 360, 560);
-
-        ctx.fillStyle = '#a5b4fc';
-        ctx.font = '24px JetBrains Mono, monospace';
-        ctx.fillText(`YouTube ID: ${state.videoId}`, 360, 620);
-        ctx.fillText(`Potongan: ${formatTime(state.startTime)} - ${formatTime(state.endTime)} (${clipDuration}d)`, 360, 665);
-
-        if (state.hookText) {
-          ctx.fillStyle = '#fbbf24';
-          ctx.fillText(state.hookText, 360, 730);
+          if (state.hookText) {
+            ctx.fillStyle = '#fbbf24';
+            ctx.fillText(state.hookText, 360, 730);
+          }
         }
-
-        if (elapsed < simDuration) {
-          requestAnimationFrame(drawSim);
-        } else {
-          recorder.stop();
-        }
-      }
-      requestAnimationFrame(drawSim);
+      });
     }
 
     function triggerBlobDownload(blob, filename) {
@@ -1752,73 +1782,63 @@
       a.download = filename;
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
+      a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 5000);
     }
 
-    function copyTimestampShareLink() {
-      const shareUrl = `https://youtu.be/${state.videoId}?t=${state.startTime}`;
-      copyTextFallback(shareUrl);
-      showToast(`Link timestamp (${formatTime(state.startTime)}) berhasil disalin!`, 'success');
+    function copyTimestampLink() {
+      const url = `https://youtu.be/${state.videoId}?t=${state.startTime}`;
+      copyTextFallback(url);
+      showToast(`Link timestamp disalin: ${url}`, 'success');
     }
 
     function copyFfmpegCommand() {
-      const cmd = document.getElementById('ffmpeg-command-preview').textContent;
+      const cmd = document.getElementById('ffmpeg-command-box').textContent;
       copyTextFallback(cmd);
-      showToast('Perintah yt-dlp + FFmpeg berhasil disalin!', 'success');
+      showToast('Perintah yt-dlp + FFmpeg (.MP4) disalin ke clipboard!', 'success');
     }
 
     function copyTextFallback(text) {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+      } catch (_) {}
+      textarea.remove();
     }
 
     /**
-     * 10. UTILITAS TOAST NOTIFICATION & SANITASI HTML
+     * =========================================================================
+     * 10. SISTEM NOTIFIKASI TOAST & INISIALISASI AWAL
+     * =========================================================================
      */
     function showToast(message, type = 'info') {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
-
       const colors = {
         success: 'bg-emerald-950/95 border-emerald-500/50 text-emerald-200',
-        error: 'bg-red-950/95 border-red-500/50 text-red-200',
+        error: 'bg-rose-950/95 border-rose-500/50 text-rose-200',
         info: 'bg-zinc-900/95 border-indigo-500/50 text-zinc-100'
       };
-
-      toast.className = `pointer-events-auto px-4 py-3 rounded-2xl border shadow-2xl backdrop-blur-md text-xs sm:text-sm font-medium flex items-center gap-2.5 transition-all duration-300 translate-y-2 opacity-0 ${colors[type] || colors.info}`;
-      toast.innerHTML = `<span>${escapeHtml(message)}</span>`;
-
+      toast.className = `pointer-events-auto px-4 py-3 rounded-2xl border shadow-2xl text-xs font-medium backdrop-blur-md transition-all duration-300 ${colors[type] || colors.info}`;
+      toast.textContent = message;
       container.appendChild(toast);
-      requestAnimationFrame(() => {
-        toast.classList.remove('translate-y-2', 'opacity-0');
-      });
 
       setTimeout(() => {
-        toast.classList.add('translate-y-2', 'opacity-0');
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(8px)';
         setTimeout(() => toast.remove(), 300);
-      }, 3400);
+      }, 3600);
     }
 
-    function escapeHtml(str) {
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-    }
-
-    // Jalankan inisialisasi saat halaman dimuat
     window.addEventListener('DOMContentLoaded', () => {
-      initYouTubeAPI();
-      initTimelineInteractions();
+      updateBackdropThumbnail();
       syncAllUI();
+      loadYouTubeIframeAPI();
     });
   </script>
 </body>
